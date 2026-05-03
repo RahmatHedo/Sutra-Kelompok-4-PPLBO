@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Riwayat Verifikasi</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../../assets/css/dashboard.css">
+</head>
+<body class="dashboard-layout">
+
+<div class="main">
+  <main class="content">
+
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1><i class="ti ti-clipboard-list"></i> Riwayat Verifikasi</h1>
+        <p>Semua pengajuan panen Anda tersimpan di sini</p>
+      </div>
+      <a href="input-panen.html" class="btn btn-primary">
+        <i class="ti ti-plus"></i> Input Panen Baru
+      </a>
+    </div>
+
+    <!-- SUMMARY MINI CARDS -->
+    <div class="quick-info" style="margin-bottom:20px">
+      <div class="qi-item">
+        <div class="qi-label">Total Pengajuan</div>
+        <div class="qi-val" style="color:var(--text-dark)">24</div>
+      </div>
+      <div class="qi-item">
+        <div class="qi-label">Disetujui</div>
+        <div class="qi-val" style="color:var(--leaf)">18</div>
+      </div>
+      <div class="qi-item">
+        <div class="qi-label">Pending</div>
+        <div class="qi-val" style="color:var(--amber)">3</div>
+      </div>
+      <div class="qi-item">
+        <div class="qi-label">Ditolak</div>
+        <div class="qi-val" style="color:var(--rose)">3</div>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">
+        <i class="ti ti-list"></i> Semua
+      </button>
+      <button class="filter-btn" data-filter="pending">
+        <i class="ti ti-clock"></i> Pending
+      </button>
+      <button class="filter-btn" data-filter="approved">
+        <i class="ti ti-circle-check"></i> Disetujui
+      </button>
+      <button class="filter-btn" data-filter="rejected">
+        <i class="ti ti-circle-x"></i> Ditolak
+      </button>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <input type="month" class="form-input" style="padding:7px 12px;font-size:.8rem;width:auto" />
+        <button class="btn btn-secondary btn-sm"><i class="ti ti-download"></i> Export</button>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID Pengajuan</th>
+            <th>Tanggal</th>
+            <th>Komoditas</th>
+            <th>Jumlah</th>
+            <th>Lokasi</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="riwayat-tbody"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL DETAIL -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="ti ti-file-description"></i> Detail Verifikasi</div>
+      <button class="modal-close" onclick="closeModal('modal-detail')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modal-detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-detail')">Tutup</button>
+      <a href="tracking.html" class="btn btn-primary"><i class="ti ti-map-pin"></i> Lihat Tracking</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="../../assets/js/main.js"></script>
+<script src="../../assets/js/sidebar-petani.js"></script>
+<script>
+  renderSidebar('riwayat');
+  renderTopbar('Riwayat Verifikasi', 'AgriChain › Riwayat');
+
+  let riwayatData = [];
+
+  const komoditasIcons = { Padi:'ti-wheat', Jagung:'ti-plant', Singkong:'ti-plant-2', Kedelai:'ti-seed', Cabai:'ti-pepper', default:'ti-leaf' };
+
+  async function loadData() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '../../index.html';
+        return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/harvests/petani', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        riwayatData = data.data;
+        renderTable();
+        updateSummary();
+      } else {
+        showToast(data.message || 'Gagal memuat data riwayat', 'error');
+      }
+    } catch (error) {
+      console.error('Error load riwayat:', error);
+      showToast('Koneksi ke server gagal', 'error');
+    }
+  }
+
+  function updateSummary() {
+    document.querySelector('.qi-item:nth-child(1) .qi-val').textContent = riwayatData.length;
+    document.querySelector('.qi-item:nth-child(2) .qi-val').textContent = riwayatData.filter(r => r.status === 'verified').length;
+    document.querySelector('.qi-item:nth-child(3) .qi-val').textContent = riwayatData.filter(r => r.status === 'pending').length;
+    document.querySelector('.qi-item:nth-child(4) .qi-val').textContent = riwayatData.filter(r => r.status === 'rejected').length;
+  }
+
+  function renderTable(filter = 'all') {
+    // Map verified to approved to match frontend UI terminology
+    const rows = riwayatData.filter(r => {
+        let fStatus = r.status === 'verified' ? 'approved' : r.status;
+        return filter === 'all' || fStatus === filter;
+    });
+    
+    const statusBadge = {
+      pending:  `<span class="badge pending"><i class="ti ti-clock"></i> Pending</span>`,
+      verified: `<span class="badge approved"><i class="ti ti-circle-check"></i> Disetujui</span>`,
+      rejected: `<span class="badge rejected"><i class="ti ti-circle-x"></i> Ditolak</span>`,
+    };
+    const tbody = document.getElementById('riwayat-tbody');
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7">
+        <div class="empty-state">
+          <i class="ti ti-inbox"></i>
+          <h3>Tidak ada data</h3>
+          <p>Belum ada pengajuan dengan filter ini</p>
+        </div>
+      </td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map((r, i) => {
+      const icon = komoditasIcons[r.komoditas] || komoditasIcons.default;
+      const tgl = new Date(r.tanggal_panen).toLocaleDateString('id-ID');
+      return `<tr>
+        <td style="font-size:.75rem;color:var(--text-light);font-weight:600;font-family:monospace">AGC-${r.id.toString().padStart(4, '0')}</td>
+        <td style="color:var(--text-mid)">${tgl}</td>
+        <td><span style="display:flex;align-items:center;gap:6px"><i class="ti ${icon}" style="color:var(--leaf)"></i>${r.komoditas}</span></td>
+        <td><strong>${r.jumlah} ${r.satuan}</strong></td>
+        <td style="color:var(--text-mid)">${r.lokasi}</td>
+        <td>${statusBadge[r.status] || statusBadge['pending']}</td>
+        <td>
+          <button class="action-btn" onclick="openDetail(${i})">
+            <i class="ti ti-eye"></i> Detail
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function openDetail(idx) {
+    const r = riwayatData[idx];
+    const statusBadge = {
+      pending: `<span class="badge pending"><i class="ti ti-clock"></i> Pending</span>`,
+      verified:`<span class="badge approved"><i class="ti ti-circle-check"></i> Disetujui</span>`,
+      rejected:`<span class="badge rejected"><i class="ti ti-circle-x"></i> Ditolak</span>`,
+    };
+    const tgl = new Date(r.tanggal_panen).toLocaleDateString('id-ID');
+    document.getElementById('modal-detail-body').innerHTML = `
+      <div class="quick-info" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+        <div class="qi-item"><div class="qi-label">ID Pengajuan</div><div class="qi-val" style="font-family:monospace">AGC-${r.id.toString().padStart(4, '0')}</div></div>
+        <div class="qi-item"><div class="qi-label">Tanggal</div><div class="qi-val">${tgl}</div></div>
+        <div class="qi-item"><div class="qi-label">Komoditas</div><div class="qi-val">${r.komoditas}</div></div>
+        <div class="qi-item"><div class="qi-label">Jumlah</div><div class="qi-val">${r.jumlah} ${r.satuan}</div></div>
+      </div>
+      <div style="background:var(--cream);border-radius:10px;padding:13px 15px;margin-bottom:14px;border:1px solid var(--border)">
+        <div style="font-size:.72rem;color:var(--text-light);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:4px">
+          <i class="ti ti-message-circle" style="font-size:13px"></i> Catatan
+        </div>
+        <div style="font-size:.84rem;color:var(--text-dark);line-height:1.5">${r.catatan || 'Tidak ada catatan.'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:.78rem;color:var(--text-light)">Status saat ini:</span>
+        ${statusBadge[r.status] || statusBadge['pending']}
+      </div>
+    `;
+    openModal('modal-detail');
+  }
+
+  initFilterBtns('.filter-btn', renderTable);
+  loadData();
+</script>
+</body>
+</html>

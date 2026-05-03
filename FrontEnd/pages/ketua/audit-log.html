@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Audit Log</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../../assets/css/dashboard.css">
+<style>
+  .log-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+    transition: background .13s;
+  }
+  .log-item:hover { background: var(--cream); }
+  .log-item:last-child { border-bottom: none; }
+  .log-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .log-icon i { font-size: 16px; }
+  .log-icon.approve { background: rgba(61,139,94,0.1); color: var(--leaf); }
+  .log-icon.reject  { background: var(--rose-light); color: var(--rose); }
+  .log-icon.input   { background: var(--sky-light); color: var(--sky); }
+  .log-icon.edit    { background: var(--amber-light); color: var(--amber); }
+  .log-icon.system  { background: var(--cream); color: var(--text-mid); border: 1px solid var(--border); }
+  .log-content { flex: 1; min-width: 0; }
+  .log-main { font-size: .84rem; color: var(--text-dark); margin-bottom: 3px; line-height: 1.4; }
+  .log-main strong { color: var(--text-dark); }
+  .log-meta { font-size: .73rem; color: var(--text-light); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .log-meta i { font-size: 12px; }
+  .log-tag {
+    padding: 2px 8px; border-radius: 4px;
+    font-size: .68rem; font-weight: 600;
+    background: var(--cream); color: var(--text-mid);
+    border: 1px solid var(--border);
+  }
+  .log-time { font-size: .72rem; color: var(--text-light); flex-shrink: 0; white-space: nowrap; }
+</style>
+</head>
+<body class="dashboard-layout">
+
+<div class="main">
+  <main class="content">
+
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1><i class="ti ti-history"></i> Audit Log</h1>
+        <p>Riwayat seluruh aktivitas verifikasi dan perubahan data di sistem</p>
+      </div>
+      <button class="btn btn-secondary" onclick="showToast('Audit log diunduh','success')">
+        <i class="ti ti-download"></i> Export Log
+      </button>
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all"><i class="ti ti-list"></i> Semua</button>
+      <button class="filter-btn" data-filter="approve"><i class="ti ti-circle-check"></i> Persetujuan</button>
+      <button class="filter-btn" data-filter="reject"><i class="ti ti-circle-x"></i> Penolakan</button>
+      <button class="filter-btn" data-filter="input"><i class="ti ti-plus"></i> Input Panen</button>
+      <button class="filter-btn" data-filter="edit"><i class="ti ti-pencil"></i> Edit Data</button>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <input type="date" class="form-input" style="padding:7px 12px;font-size:.8rem;width:auto" />
+        <input type="date" class="form-input" style="padding:7px 12px;font-size:.8rem;width:auto" />
+      </div>
+    </div>
+
+    <!-- LOG LIST -->
+    <div class="card" style="overflow:hidden">
+      <div id="log-list"></div>
+    </div>
+
+    <!-- PAGINATION -->
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:16px;align-items:center">
+      <button class="btn btn-secondary btn-sm"><i class="ti ti-chevron-left"></i></button>
+      <button class="btn btn-primary btn-sm" style="min-width:36px">1</button>
+      <button class="btn btn-secondary btn-sm" style="min-width:36px">2</button>
+      <button class="btn btn-secondary btn-sm" style="min-width:36px">3</button>
+      <span style="font-size:.8rem;color:var(--text-light)">...</span>
+      <button class="btn btn-secondary btn-sm" style="min-width:36px">12</button>
+      <button class="btn btn-secondary btn-sm"><i class="ti ti-chevron-right"></i></button>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="../../assets/js/main.js"></script>
+<script src="../../assets/js/sidebar-ketua.js"></script>
+<script>
+  renderSidebar('audit-log');
+  renderTopbar('Audit Log', 'AgriChain › Audit Log');
+
+  let logs = [];
+
+  async function loadLogs() {
+    const token = localStorage.getItem('token');
+    if (!token) { window.location.href = '../../index.html'; return; }
+
+    try {
+      const res = await fetch('http://localhost:3000/api/harvests/ketua', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        logs = (data.data || []).map(h => {
+          const tgl = new Date(h.updated_at || h.created_at);
+          const timeStr = tgl.toLocaleDateString('id-ID', {day:'numeric', month:'short'}) + ', ' + tgl.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+          const idStr = 'AGC-' + String(h.id).padStart(4, '0');
+
+          if (h.status === 'verified') {
+            return { type:'approve', icon:'ti-circle-check', title:`Ketua menyetujui panen <strong>${h.nama_petani}</strong>`, detail:`${h.komoditas} ${h.jumlah} ${h.satuan} · ${h.lokasi} · ${idStr}`, tag:'Verifikasi', time:timeStr };
+          } else if (h.status === 'rejected') {
+            return { type:'reject', icon:'ti-circle-x', title:`Ketua menolak panen <strong>${h.nama_petani}</strong>`, detail:`${h.komoditas} ${h.jumlah} ${h.satuan} · ${h.lokasi} · ${idStr} — ${h.catatan || 'Tidak sesuai'}`, tag:'Verifikasi', time:timeStr };
+          } else {
+            return { type:'input', icon:'ti-plus', title:`<strong>${h.nama_petani}</strong> menginput pengajuan panen baru`, detail:`${h.komoditas} ${h.jumlah} ${h.satuan} · ${h.lokasi} · ${idStr}`, tag:'Input Panen', time:timeStr };
+          }
+        });
+        renderLogs();
+      }
+    } catch(e) {
+      console.error('Error load audit:', e);
+    }
+  }
+
+  function renderLogs(filter = 'all') {
+    const filtered = filter === 'all' ? logs : logs.filter(l => l.type === filter);
+    document.getElementById('log-list').innerHTML = filtered.length === 0
+      ? `<div class="empty-state" style="padding:40px;text-align:center"><i class="ti ti-inbox" style="font-size:36px;color:var(--text-light)"></i><h3>Tidak ada log</h3></div>`
+      : filtered.map(l => `
+      <div class="log-item">
+        <div class="log-icon ${l.type}"><i class="ti ${l.icon}"></i></div>
+        <div class="log-content">
+          <div class="log-main">${l.title}</div>
+          <div class="log-meta">
+            <i class="ti ti-file-description"></i> ${l.detail}
+            <span class="log-tag">${l.tag}</span>
+          </div>
+        </div>
+        <div class="log-time"><i class="ti ti-clock" style="font-size:11px;margin-right:3px"></i>${l.time}</div>
+      </div>
+    `).join('');
+  }
+
+  initFilterBtns('.filter-btn', renderLogs);
+  loadLogs();
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Notifikasi</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../../assets/css/dashboard.css">
+</head>
+<body class="dashboard-layout">
+
+<div class="main">
+  <main class="content">
+
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1><i class="ti ti-bell"></i> Notifikasi</h1>
+        <p id="unread-count-text">5 notifikasi belum dibaca</p>
+      </div>
+      <button class="btn btn-secondary" onclick="markAllRead()">
+        <i class="ti ti-checks"></i> Tandai Semua Dibaca
+      </button>
+    </div>
+
+    <div class="notif-list" id="notif-list"></div>
+
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="../../assets/js/main.js"></script>
+<script src="../../assets/js/sidebar-petani.js"></script>
+<script>
+  renderSidebar('notifikasi');
+  renderTopbar('Notifikasi', 'AgriChain › Notifikasi');
+
+  let notifData = [];
+
+  async function loadNotifikasi() {
+    const token = localStorage.getItem('token');
+    if (!token) { window.location.href = '../../index.html'; return; }
+
+    try {
+      const res = await fetch('http://localhost:3000/api/harvests/petani', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        notifData = (data.data || []).map(h => {
+          const idStr = 'AGC-' + String(h.id).padStart(4, '0');
+          const tgl = new Date(h.updated_at || h.created_at);
+          const now = new Date();
+          const diff = Math.floor((now - tgl) / (1000 * 60 * 60));
+          let timeStr;
+          if (diff < 1) timeStr = 'Baru saja';
+          else if (diff < 24) timeStr = diff + ' jam lalu';
+          else if (diff < 48) timeStr = 'Kemarin';
+          else timeStr = Math.floor(diff / 24) + ' hari lalu';
+
+          if (h.status === 'verified') {
+            return { icon:'ti ti-circle-check', bg:'rgba(61,139,94,0.1)', color:'var(--leaf)', title:`Panen ${h.komoditas} Disetujui`, desc:`Pengajuan ${idStr} (${h.jumlah} ${h.satuan} ${h.komoditas}) telah disetujui oleh Ketua.`, time:timeStr, unread: diff < 72 };
+          } else if (h.status === 'rejected') {
+            return { icon:'ti ti-circle-x', bg:'var(--rose-light)', color:'var(--rose)', title:`Panen Ditolak — Perlu Revisi`, desc:`${idStr} ${h.komoditas} ${h.jumlah} ${h.satuan} ditolak. ${h.catatan ? 'Alasan: ' + h.catatan : 'Silakan periksa data Anda.'}`, time:timeStr, unread: diff < 72 };
+          } else {
+            return { icon:'ti ti-clock', bg:'var(--amber-light)', color:'var(--amber)', title:`Menunggu Verifikasi`, desc:`Pengajuan ${idStr} (${h.jumlah} ${h.satuan} ${h.komoditas}) sedang menunggu verifikasi ketua.`, time:timeStr, unread: true };
+          }
+        });
+        renderNotif();
+      }
+    } catch(e) {
+      console.error('Error load notifikasi:', e);
+    }
+  }
+
+  function renderNotif() {
+    const unread = notifData.filter(n => n.unread).length;
+    document.getElementById('unread-count-text').textContent = unread > 0 ? `${unread} notifikasi belum dibaca` : 'Semua notifikasi sudah dibaca';
+
+    document.getElementById('notif-list').innerHTML = notifData.length === 0
+      ? '<div style="padding:40px;text-align:center;color:var(--text-light)"><i class="ti ti-bell-off" style="font-size:36px"></i><h3>Belum ada notifikasi</h3></div>'
+      : notifData.map((n, i) => `
+      <div class="notif-item ${n.unread ? 'unread' : ''}" onclick="readNotif(${i})">
+        <div class="notif-icon-wrap" style="background:${n.bg}">
+          <i class="${n.icon}" style="color:${n.color}"></i>
+        </div>
+        <div class="notif-content">
+          <div class="notif-title">${n.title}</div>
+          <div class="notif-desc">${n.desc}</div>
+          <div class="notif-time"><i class="ti ti-clock" style="font-size:11px;margin-right:3px"></i>${n.time}</div>
+        </div>
+        <div class="notif-right">
+          ${n.unread ? '<div class="unread-dot"></div>' : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function readNotif(i) {
+    notifData[i].unread = false;
+    renderNotif();
+  }
+
+  function markAllRead() {
+    notifData.forEach(n => n.unread = false);
+    renderNotif();
+    showToast('Semua notifikasi telah ditandai dibaca', 'success');
+  }
+
+  loadNotifikasi();
+</script>
+</body>
+</html>

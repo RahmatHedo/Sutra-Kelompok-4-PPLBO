@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Masuk</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  body {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 480px;
+    background: var(--forest);
+  }
+
+  /* ── LEFT PANEL ── */
+  .login-left {
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-left::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: rgba(168,224,107,0.06);
+    top: -100px; left: -100px;
+    pointer-events: none;
+  }
+  .login-left::after {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(95,191,138,0.07);
+    bottom: -80px; right: -80px;
+    pointer-events: none;
+  }
+
+  .left-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1;
+  }
+  .left-logo-icon {
+    width: 46px; height: 46px;
+    background: linear-gradient(135deg, var(--lime), var(--mint));
+    border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .left-logo-icon i { font-size: 24px; color: var(--forest); }
+  .left-logo-text {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+  .left-logo-text span { color: var(--lime); }
+
+  .left-hero { z-index: 1; }
+  .left-hero h1 {
+    font-size: 2.6rem;
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    font-weight: 800;
+  }
+  .left-hero h1 span { color: var(--lime); }
+  .left-hero p { font-size: 0.97rem; color: rgba(255,255,255,0.55); line-height: 1.65; max-width: 420px; }
+
+  .left-features { display: flex; flex-direction: column; gap: 14px; z-index: 1; }
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .feature-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: rgba(168,224,107,0.12);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .feature-icon i { font-size: 17px; color: var(--lime); }
+  .feature-text strong { display: block; font-size: 0.85rem; color: #fff; margin-bottom: 2px; }
+  .feature-text span { font-size: 0.76rem; color: rgba(255,255,255,0.45); }
+
+  /* ── RIGHT PANEL ── */
+  .login-right {
+    background: var(--warm-white);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 48px 44px;
+    position: relative;
+  }
+
+  .login-form-header { margin-bottom: 30px; }
+  .login-form-header h2 {
+    font-size: 1.65rem;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+  }
+  .login-form-header p { font-size: 0.85rem; color: var(--text-light); }
+
+  .role-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .role-btn {
+    padding: 12px 14px;
+    border-radius: 11px;
+    border: 2px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    text-align: center;
+    transition: all .17s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .role-btn i { font-size: 22px; color: var(--text-light); transition: color .17s; }
+  .role-btn span { font-size: 0.82rem; font-weight: 500; color: var(--text-mid); transition: color .17s; font-family: var(--font-body); }
+  .role-btn:hover { border-color: var(--leaf); }
+  .role-btn:hover i { color: var(--leaf); }
+  .role-btn:hover span { color: var(--leaf); }
+  .role-btn.active { border-color: var(--leaf); background: rgba(61,139,94,0.06); }
+  .role-btn.active i { color: var(--leaf); }
+  .role-btn.active span { color: var(--leaf); font-weight: 600; }
+
+  .form-stack { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .input-icon {
+    position: absolute;
+    left: 13px;
+    color: var(--text-light);
+    pointer-events: none;
+  }
+  .input-icon i { font-size: 17px; }
+  .input-wrapper .form-input { padding-left: 40px; }
+  .eye-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-light);
+    padding: 4px;
+    display: flex;
+  }
+  .eye-toggle:hover { color: var(--text-mid); }
+  .eye-toggle i { font-size: 17px; }
+
+  .form-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.81rem;
+  }
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    color: var(--text-mid);
+  }
+  .checkbox-label input { accent-color: var(--leaf); width: 15px; height: 15px; }
+  .forgot-link { color: var(--leaf); font-weight: 500; transition: opacity .14s; }
+  .forgot-link:hover { opacity: .75; }
+
+  .btn-login {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--forest-mid), var(--leaf));
+    color: #fff;
+    border: none;
+    border-radius: 11px;
+    font-family: var(--font-display);
+    font-size: 0.97rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s;
+    box-shadow: 0 4px 14px rgba(26,58,42,0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+    letter-spacing: 0.2px;
+  }
+  .btn-login i { font-size: 18px; }
+  .btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(26,58,42,0.3);
+  }
+  .btn-login:active { transform: translateY(0); }
+
+  .register-link {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-light);
+    margin-top: 20px;
+  }
+  .register-link a { color: var(--leaf); font-weight: 500; }
+  .register-link a:hover { text-decoration: underline; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+    color: var(--text-light);
+    font-size: 0.78rem;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    body { grid-template-columns: 1fr; }
+    .login-left { display: none; }
+    .login-right { min-height: 100vh; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="login-left">
+  <div class="left-logo">
+    <div class="left-logo-icon"><i class="ti ti-leaf"></i></div>
+    <div class="left-logo-text">Agri<span>Chain</span></div>
+  </div>
+
+  <div class="left-hero">
+    <h1>Verifikasi Panen<br>yang <span>Transparan</span><br>& Terpercaya</h1>
+    <p>Platform digital untuk petani dan ketua kelompok tani dalam mengelola, memverifikasi, dan melacak hasil panen secara real-time.</p>
+  </div>
+
+  <div class="left-features">
+    <div class="feature-item">
+      <div class="feature-icon"><i class="ti ti-shield-check"></i></div>
+      <div class="feature-text">
+        <strong>2 Tahap Verifikasi</strong>
+        <span>Verifikasi awal oleh petani, final oleh ketua kelompok</span>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="ti ti-timeline"></i></div>
+      <div class="feature-text">
+        <strong>Tracking Real-time</strong>
+        <span>Pantau status panen dari input hingga finalisasi</span>
+      </div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon"><i class="ti ti-chart-bar"></i></div>
+      <div class="feature-text">
+        <strong>Laporan Produksi</strong>
+        <span>Analitik data panen bulanan & tahunan lengkap</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="login-right">
+  <div class="login-form-header">
+    <h2>Selamat Datang </h2>
+    <p>Masuk ke akun AgriChain Anda</p>
+  </div>
+
+  <!-- Role Select -->
+  <div class="role-select" id="role-select">
+    <button class="role-btn active" id="role-petani" onclick="selectRole('petani')">
+      <i class="ti ti-user"></i>
+      <span>Petani</span>
+    </button>
+    <button class="role-btn" id="role-ketua" onclick="selectRole('ketua')">
+      <i class="ti ti-users"></i>
+      <span>Ketua Petani</span>
+    </button>
+  </div>
+
+  <!-- Form -->
+  <div class="form-stack">
+    <div class="form-group">
+      <label><i class="ti ti-at"></i> Username / Email</label>
+      <div class="input-wrapper">
+        <div class="input-icon"><i class="ti ti-user"></i></div>
+        <input type="text" class="form-input" id="username" placeholder="Masukkan username Anda" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label><i class="ti ti-lock"></i> Password</label>
+      <div class="input-wrapper">
+        <div class="input-icon"><i class="ti ti-lock"></i></div>
+        <input type="password" class="form-input" id="password" placeholder="Masukkan password" />
+        <button class="eye-toggle" onclick="togglePassword()" id="eye-btn">
+          <i class="ti ti-eye" id="eye-icon"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-options">
+    <label class="checkbox-label">
+      <input type="checkbox"> Ingat saya
+    </label>
+    <a href="#" class="forgot-link">Lupa password?</a>
+  </div>
+
+  <button class="btn-login" onclick="doLogin()">
+    <i class="ti ti-login"></i> Masuk Sekarang
+  </button>
+
+  <div class="register-link">
+    Belum punya akun? <a href="register.html">Daftar di sini</a>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="assets/js/main.js"></script>
+<script>
+  let selectedRole = 'petani';
+
+  function selectRole(role) {
+    selectedRole = role;
+    document.getElementById('role-petani').classList.toggle('active', role === 'petani');
+    document.getElementById('role-ketua').classList.toggle('active', role === 'ketua');
+  }
+
+  function togglePassword() {
+    const input = document.getElementById('password');
+    const icon  = document.getElementById('eye-icon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'ti ti-eye-off';
+    } else {
+      input.type = 'password';
+      icon.className = 'ti ti-eye';
+    }
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    
+    if (!email || !password) {
+      showToast('Mohon lengkapi email dan password', 'error');
+      return;
+    }
+    
+    showToast('Sedang masuk...', 'info');
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showToast('Login Berhasil!', 'success');
+        
+        // Simpan token dan data user di localStorage
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        setTimeout(() => {
+          if (data.user.role === 'petani') {
+            window.location.href = 'pages/petani/dashboard.html';
+          } else if (data.user.role === 'ketua') {
+            window.location.href = 'pages/ketua/dashboard.html';
+          } else {
+             window.location.href = 'pages/admin/dashboard.html';
+          }
+        }, 900);
+      } else {
+        showToast(data.message || 'Login Gagal', 'error');
+      }
+    } catch (error) {
+      console.error('Login Error:', error);
+      showToast('Terjadi kesalahan koneksi ke server', 'error');
+    }
+  }
+
+  // Enter key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+</script>
+</body>
+</html>

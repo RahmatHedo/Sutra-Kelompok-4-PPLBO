@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Verifikasi Panen</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../../assets/css/dashboard.css">
+<style>
+  .verif-action-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-approve {
+    background: rgba(61,139,94,0.1);
+    color: var(--leaf);
+    border: 1.5px solid rgba(61,139,94,0.3);
+  }
+  .btn-approve:hover { background: var(--leaf); color: #fff; border-color: var(--leaf); }
+  .btn-reject {
+    background: var(--rose-light);
+    color: var(--rose);
+    border: 1.5px solid #f5c4c4;
+  }
+  .btn-reject:hover { background: var(--rose); color: #fff; }
+  .btn-revisi {
+    background: var(--amber-light);
+    color: #b07c10;
+    border: 1.5px solid #f0d28a;
+  }
+  .btn-revisi:hover { background: var(--amber); color: #fff; border-color: var(--amber); }
+
+  .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+  .photo-placeholder {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-light);
+  }
+  .photo-placeholder i { font-size: 28px; }
+  .photo-placeholder span { font-size: .75rem; }
+</style>
+</head>
+<body class="dashboard-layout">
+
+<div class="main">
+  <main class="content">
+
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1><i class="ti ti-shield-check"></i> Verifikasi Panen</h1>
+        <p id="verif-subtitle">Memuat data pengajuan...</p>
+      </div>
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all"><i class="ti ti-list"></i> Semua</button>
+      <button class="filter-btn" data-filter="pending"><i class="ti ti-clock"></i> Menunggu</button>
+      <button class="filter-btn" data-filter="approved"><i class="ti ti-circle-check"></i> Disetujui</button>
+      <button class="filter-btn" data-filter="rejected"><i class="ti ti-circle-x"></i> Ditolak</button>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <select id="filter-petani" class="form-input" style="width:auto;padding:7px 12px;font-size:.8rem" onchange="renderTable(document.querySelector('.filter-btn.active')?.dataset?.filter || 'all')">
+          <option value="all">Semua Petani</option>
+        </select>
+        <input id="filter-bulan" type="month" class="form-input" style="padding:7px 12px;font-size:.8rem;width:auto" onchange="renderTable(document.querySelector('.filter-btn.active')?.dataset?.filter || 'all')" />
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Nama Petani</th><th>Tanggal</th><th>Komoditas</th><th>Jumlah</th><th>Status</th><th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="verif-tbody"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL DETAIL VERIFIKASI -->
+<div class="modal-overlay" id="modal-verif">
+  <div class="modal" style="width:580px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="ti ti-shield-check"></i> Detail Verifikasi</div>
+      <button class="modal-close" onclick="closeModal('modal-verif')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modal-verif-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-verif')">Batal</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="../../assets/js/main.js"></script>
+<script src="../../assets/js/sidebar-ketua.js"></script>
+<script>
+  renderSidebar('verifikasi');
+  renderTopbar('Verifikasi Panen', 'AgriChain › Verifikasi');
+
+  let verifData = [];
+
+  const statusBadge = {
+    pending:  `<span class="badge pending"><i class="ti ti-clock"></i> Menunggu</span>`,
+    verified: `<span class="badge approved"><i class="ti ti-circle-check"></i> Disetujui</span>`,
+    rejected: `<span class="badge rejected"><i class="ti ti-circle-x"></i> Ditolak</span>`,
+  };
+
+  async function loadVerifData() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '../../index.html';
+        return;
+    }
+    
+    try {
+        const response = await fetch('http://localhost:3000/api/harvests/ketua', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            verifData = data.data;
+            populatePetaniDropdown();
+            renderTable(document.querySelector('.filter-btn.active')?.dataset?.filter || 'all');
+            // Update subtitle
+            const pendingCount = verifData.filter(r => r.status === 'pending').length;
+            document.getElementById('verif-subtitle').textContent = pendingCount > 0
+                ? `${pendingCount} pengajuan menunggu verifikasi Anda`
+                : 'Tidak ada pengajuan yang menunggu';
+        } else {
+            showToast(data.message || 'Gagal mengambil data', 'error');
+        }
+    } catch (error) {
+        console.error('Error load verif:', error);
+    }
+  }
+
+  function populatePetaniDropdown() {
+    const select = document.getElementById('filter-petani');
+    const uniquePetani = [...new Set(verifData.map(item => item.nama_petani))];
+    let html = '<option value="all">Semua Petani</option>';
+    uniquePetani.forEach(nama => {
+      if (nama) {
+         html += `<option value="${nama}">${nama}</option>`;
+      }
+    });
+    const prevVal = select.value;
+    select.innerHTML = html;
+    if (uniquePetani.includes(prevVal) || prevVal === 'all') {
+        select.value = prevVal;
+    }
+  }
+
+  function renderTable(filter = 'all') {
+    // map frontend "approved" filter back to "verified"
+    let dbFilter = filter === 'approved' ? 'verified' : filter;
+    
+    const filterPetani = document.getElementById('filter-petani').value;
+    const filterBulan = document.getElementById('filter-bulan').value;
+    
+    const rows = verifData.filter(r => {
+        let matchStatus = dbFilter === 'all' || r.status === dbFilter;
+        let matchPetani = filterPetani === 'all' || r.nama_petani === filterPetani;
+        
+        let matchBulan = true;
+        if (filterBulan && r.tanggal_panen) {
+            const dateObj = new Date(r.tanggal_panen);
+            const yyyy = dateObj.getFullYear();
+            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const rowBulan = `${yyyy}-${mm}`;
+            matchBulan = rowBulan === filterBulan;
+        }
+        
+        return matchStatus && matchPetani && matchBulan;
+    });
+    
+    const tbody = document.getElementById('verif-tbody');
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-inbox"></i><h3>Tidak ada data</h3><p>Tidak ada pengajuan dengan filter ini</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map((r, i) => {
+      const tgl = new Date(r.tanggal_panen).toLocaleDateString('id-ID');
+      return `
+      <tr>
+        <td style="font-family:monospace;font-size:.75rem;color:var(--text-light)">AGC-${r.id.toString().padStart(4, '0')}</td>
+        <td><strong>${r.nama_petani}</strong></td>
+        <td style="color:var(--text-mid)">${tgl}</td>
+        <td>${r.komoditas}</td>
+        <td><strong>${r.jumlah} ${r.satuan}</strong></td>
+        <td>${statusBadge[r.status] || statusBadge['pending']}</td>
+        <td>
+          <div style="display:flex;gap:5px">
+            <button class="action-btn" onclick="openVerif(${i})"><i class="ti ti-eye"></i> Detail</button>
+            ${r.status === 'pending' ? `
+            <button class="action-btn btn-approve" onclick="doAction(${r.id},'verified')"><i class="ti ti-check"></i></button>
+            <button class="action-btn btn-reject"  onclick="doAction(${r.id},'rejected')"><i class="ti ti-x"></i></button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>
+    `}).join('');
+  }
+
+  function openVerif(i) {
+    const r = verifData[i];
+    const isPending = r.status === 'pending';
+    const fotoHtml = r.foto ? 
+        `<img src="http://localhost:3000/uploads/${r.foto}" alt="Bukti Panen" style="max-width:100%; border-radius:10px; max-height:200px; object-fit:cover;">` : 
+        `<div class="photo-placeholder"><i class="ti ti-photo"></i><span>Tidak ada foto</span></div>`;
+        
+    document.getElementById('modal-verif-body').innerHTML = `
+      <div class="quick-info" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+        <div class="qi-item"><div class="qi-label">ID Pengajuan</div><div class="qi-val" style="font-family:monospace">AGC-${r.id.toString().padStart(4, '0')}</div></div>
+        <div class="qi-item"><div class="qi-label">Petani</div><div class="qi-val">${r.nama_petani}</div></div>
+        <div class="qi-item"><div class="qi-label">Komoditas</div><div class="qi-val">${r.komoditas}</div></div>
+        <div class="qi-item"><div class="qi-label">Jumlah</div><div class="qi-val">${r.jumlah} ${r.satuan}</div></div>
+        <div class="qi-item"><div class="qi-label">Lokasi</div><div class="qi-val">${r.lokasi}</div></div>
+        <div class="qi-item"><div class="qi-label">Luas Lahan</div><div class="qi-val">${r.luas || '-'}</div></div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:.79rem;font-weight:600;color:var(--text-mid);margin-bottom:8px;display:flex;align-items:center;gap:5px">
+          <i class="ti ti-camera" style="color:var(--leaf)"></i> Foto Bukti Panen
+        </div>
+        <div class="photo-grid" style="grid-template-columns: 1fr;">
+          ${fotoHtml}
+        </div>
+      </div>
+
+      ${isPending ? `
+      <div class="verif-action-bar">
+        <button class="btn btn-sm btn-approve" onclick="doAction(${r.id},'verified')">
+          <i class="ti ti-circle-check"></i> Setujui Panen
+        </button>
+        <button class="btn btn-sm btn-reject" onclick="doAction(${r.id},'rejected')">
+          <i class="ti ti-circle-x"></i> Tolak
+        </button>
+      </div>
+      ` : `
+      <div style="background:var(--cream);border-radius:10px;padding:12px 14px;border:1px solid var(--border)">
+        <div style="font-size:.72rem;color:var(--text-light);margin-bottom:4px">Catatan</div>
+        <div style="font-size:.84rem;color:var(--text-dark)">${r.catatan || 'Tidak ada catatan.'}</div>
+      </div>
+      `}
+    `;
+    openModal('modal-verif');
+  }
+
+  async function doAction(id, status) {
+    const token = localStorage.getItem('token');
+    
+    try {
+        const response = await fetch(`http://localhost:3000/api/harvests/${id}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showToast(data.message, 'success');
+            closeModal('modal-verif');
+            loadVerifData(); // Refresh data
+        } else {
+            showToast(data.message || 'Gagal mengubah status', 'error');
+        }
+    } catch(err) {
+        console.error('Error verifikasi:', err);
+        showToast('Koneksi server gagal', 'error');
+    }
+  }
+
+  initFilterBtns('.filter-btn', renderTable);
+  loadVerifData();
+</script>
+</body>
+</html>

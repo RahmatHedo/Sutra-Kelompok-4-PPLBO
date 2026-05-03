@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Input Hasil Panen</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../../assets/css/dashboard.css">
+</head>
+<body class="dashboard-layout">
+
+<div class="main">
+  <main class="content">
+
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1><i class="ti ti-plus"></i> Input Hasil Panen</h1>
+        <p>Isi formulir di bawah untuk mendaftarkan hasil panen Anda</p>
+      </div>
+      <a href="riwayat.html" class="btn btn-secondary">
+        <i class="ti ti-clipboard-list"></i> Lihat Riwayat
+      </a>
+    </div>
+
+    <!-- STEPPER STATUS -->
+    <div class="card section-gap">
+      <div class="card-body" style="padding:16px 22px">
+        <div class="status-stepper">
+          <div class="step current">
+            <div class="step-circle"><i class="ti ti-edit"></i></div>
+            <div class="step-label">Isi Formulir</div>
+          </div>
+          <div class="step">
+            <div class="step-circle"><i class="ti ti-send"></i></div>
+            <div class="step-label">Submit Awal</div>
+          </div>
+          <div class="step">
+            <div class="step-circle"><i class="ti ti-shield-check"></i></div>
+            <div class="step-label">Verifikasi Ketua</div>
+          </div>
+          <div class="step">
+            <div class="step-circle"><i class="ti ti-certificate"></i></div>
+            <div class="step-label">Finalisasi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="card section-gap">
+      <div class="card-header">
+        <div class="card-title"><i class="ti ti-file-description"></i> Formulir Input Panen</div>
+        <span class="badge draft"><i class="ti ti-pencil"></i> Draft</span>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label><i class="ti ti-calendar"></i> Tanggal Panen *</label>
+            <input type="date" class="form-input" id="tanggal-panen" />
+          </div>
+          <div class="form-group">
+            <label><i class="ti ti-wheat"></i> Jenis Komoditas *</label>
+            <select class="form-input" id="komoditas">
+              <option value="">— Pilih komoditas —</option>
+              <option>Padi</option>
+              <option>Jagung</option>
+              <option>Singkong</option>
+              <option>Kedelai</option>
+              <option>Cabai</option>
+              <option>Tomat</option>
+              <option>Bawang Merah</option>
+              <option>Lainnya</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="ti ti-scale"></i> Jumlah Panen *</label>
+            <input type="number" class="form-input" placeholder="cth: 450" id="jumlah" min="0" />
+          </div>
+          <div class="form-group">
+            <label><i class="ti ti-ruler"></i> Satuan</label>
+            <select class="form-input" id="satuan">
+              <option value="kg">Kilogram (kg)</option>
+              <option value="ton">Ton (t)</option>
+              <option value="kuintal">Kuintal (kw)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="ti ti-map-pin"></i> Lokasi Lahan *</label>
+            <input type="text" class="form-input" placeholder="cth: Blok A, Desa Sukamaju" id="lokasi" />
+          </div>
+          <div class="form-group">
+            <label><i class="ti ti-square-rotated"></i> Luas Lahan Panen (m²)</label>
+            <input type="number" class="form-input" placeholder="cth: 5000" id="luas" min="0" />
+          </div>
+          <div class="form-group">
+            <label><i class="ti ti-thermometer"></i> Kondisi Cuaca</label>
+            <select class="form-input" id="cuaca">
+              <option value="">— Pilih kondisi cuaca —</option>
+              <option>Cerah</option>
+              <option>Berawan</option>
+              <option>Hujan Ringan</option>
+              <option>Hujan Deras</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label><i class="ti ti-star"></i> Kualitas Panen</label>
+            <select class="form-input" id="kualitas">
+              <option value="">— Pilih kualitas —</option>
+              <option>Premium (Grade A)</option>
+              <option>Standar (Grade B)</option>
+              <option>Bawah Standar</option>
+            </select>
+          </div>
+          <div class="form-group span-2">
+            <label><i class="ti ti-notes"></i> Catatan Tambahan</label>
+            <textarea class="form-input" rows="3"
+              placeholder="Kualitas panen, kondisi cuaca, kendala, dll..." id="catatan"></textarea>
+          </div>
+          <div class="form-group span-2">
+            <label><i class="ti ti-camera"></i> Foto Bukti Panen *</label>
+            <div class="upload-area" id="upload-area" onclick="triggerUpload()">
+              <i class="ti ti-photo-up" id="upload-icon"></i>
+              <div class="upload-text" id="upload-text">Klik untuk upload foto bukti panen</div>
+              <div class="upload-hint">Format: JPG, PNG, HEIC — Maks. 5MB per foto · Maks. 3 foto</div>
+            </div>
+            <input type="file" id="file-input" accept="image/*" multiple style="display:none" onchange="handleUpload(this)">
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="submitPanen()">
+            <i class="ti ti-send"></i> Submit Verifikasi Awal
+          </button>
+          <button class="btn btn-outline" onclick="saveDraft()">
+            <i class="ti ti-device-floppy"></i> Simpan Draft
+          </button>
+          <button class="btn btn-secondary" onclick="resetForm()">
+            <i class="ti ti-refresh"></i> Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIP -->
+    <div class="tip-box blue">
+      <i class="ti ti-bulb"></i>
+      <div>
+        <strong>Tips Input Panen yang Baik</strong>
+        <p>Pastikan foto panen jelas dan menampilkan komoditas beserta timbangan. Data yang lengkap dan akurat akan mempercepat proses verifikasi oleh ketua kelompok tani Anda.</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="../../assets/js/main.js"></script>
+<script src="../../assets/js/sidebar-petani.js"></script>
+<script>
+  renderSidebar('input-panen');
+  renderTopbar('Input Hasil Panen', 'AgriChain › Input Panen');
+
+  function triggerUpload() {
+    document.getElementById('file-input').click();
+  }
+
+  function handleUpload(input) {
+    if (input.files.length > 0) {
+      const names = Array.from(input.files).map(f => f.name).join(', ');
+      document.getElementById('upload-text').textContent = `✓ ${input.files.length} foto dipilih: ${names}`;
+      document.getElementById('upload-icon').className = 'ti ti-circle-check';
+      document.getElementById('upload-icon').style.color = 'var(--leaf)';
+      document.getElementById('upload-area').style.borderColor = 'var(--leaf)';
+      showToast(`${input.files.length} foto berhasil dipilih`, 'success');
+    }
+  }
+
+  async function submitPanen() {
+    const tgl = document.getElementById('tanggal-panen').value;
+    const kom = document.getElementById('komoditas').value;
+    const jml = document.getElementById('jumlah').value;
+    const sat = document.getElementById('satuan').value;
+    const lok = document.getElementById('lokasi').value;
+    const luas = document.getElementById('luas').value;
+    const cuaca = document.getElementById('cuaca').value;
+    const kual = document.getElementById('kualitas').value;
+    const cat = document.getElementById('catatan').value;
+    const fileInput = document.getElementById('file-input');
+
+    if (!tgl || !kom || !jml || !sat || !lok) {
+      showToast('Lengkapi semua field wajib (*) terlebih dahulu', 'error');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showToast('Anda belum login, silakan login kembali.', 'error');
+        setTimeout(() => window.location.href = '../../index.html', 1500);
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('tanggal_panen', tgl);
+    formData.append('komoditas', kom);
+    formData.append('jumlah', jml);
+    formData.append('satuan', sat);
+    formData.append('lokasi', lok);
+    if(luas) formData.append('luas', luas);
+    if(cuaca) formData.append('cuaca', cuaca);
+    if(kual) formData.append('kualitas', kual);
+    if(cat) formData.append('catatan', cat);
+    
+    if (fileInput.files.length > 0) {
+      formData.append('foto', fileInput.files[0]);
+    }
+
+    try {
+      showToast('Mengirim data panen...', 'info');
+      const response = await fetch('http://localhost:3000/api/harvests', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showToast('Pengajuan berhasil dikirim! Menunggu verifikasi ketua.', 'success');
+        resetForm();
+        setTimeout(() => window.location.href = 'riwayat.html', 1400);
+      } else {
+        showToast(data.message || 'Gagal mengirim data', 'error');
+      }
+    } catch (error) {
+      console.error('Error submit panen:', error);
+      showToast('Terjadi kesalahan pada server', 'error');
+    }
+  }
+
+  function saveDraft() {
+    showToast('Draft berhasil disimpan', 'success');
+  }
+
+  function resetForm() {
+    ['tanggal-panen','komoditas','jumlah','satuan','lokasi','luas','cuaca','kualitas','catatan'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('upload-text').textContent = 'Klik untuk upload foto bukti panen';
+    document.getElementById('upload-icon').className = 'ti ti-photo-up';
+    document.getElementById('upload-icon').style.color = '';
+    document.getElementById('upload-area').style.borderColor = '';
+    document.getElementById('file-input').value = '';
+  }
+</script>
+</body>
+</html>

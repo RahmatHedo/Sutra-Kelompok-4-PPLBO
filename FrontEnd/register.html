@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Daftar</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  body {
+    min-height: 100vh;
+    background: var(--warm-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+  }
+  .register-card {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 32px rgba(26,58,42,0.1);
+    width: 560px;
+    max-width: 100%;
+    padding: 36px 38px;
+  }
+  .reg-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .reg-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    text-decoration: none;
+  }
+  .reg-logo-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--lime), var(--mint));
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .reg-logo-icon i { font-size: 21px; color: var(--forest); }
+  .reg-logo-text {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-dark);
+  }
+  .reg-logo-text span { color: var(--leaf); }
+  .reg-header h2 { font-size: 1.4rem; color: var(--text-dark); margin-bottom: 5px; }
+  .reg-header p  { font-size: 0.83rem; color: var(--text-light); }
+
+  .form-stack { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+  .input-wrapper { position: relative; display: flex; align-items: center; }
+  .input-icon { position: absolute; left: 12px; color: var(--text-light); pointer-events: none; }
+  .input-icon i { font-size: 17px; }
+  .input-wrapper .form-input { padding-left: 39px; }
+
+  .btn-register {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--forest-mid), var(--leaf));
+    color: #fff;
+    border: none;
+    border-radius: 11px;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s;
+    box-shadow: 0 4px 14px rgba(26,58,42,0.22);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 14px;
+  }
+  .btn-register:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,58,42,0.28); }
+  .btn-register i { font-size: 18px; }
+
+  .login-link { text-align: center; font-size: 0.82rem; color: var(--text-light); }
+  .login-link a { color: var(--leaf); font-weight: 500; }
+
+  .role-select {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px;
+  }
+  .role-btn {
+    padding: 10px 14px; border-radius: 10px; border: 2px solid var(--border);
+    background: #fff; cursor: pointer; text-align: center; transition: all .16s;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+  }
+  .role-btn i { font-size: 20px; color: var(--text-light); transition: color .16s; }
+  .role-btn span { font-size: 0.8rem; font-weight: 500; color: var(--text-mid); font-family: var(--font-body); }
+  .role-btn.active { border-color: var(--leaf); background: rgba(61,139,94,0.06); }
+  .role-btn.active i, .role-btn.active span { color: var(--leaf); }
+</style>
+</head>
+<body>
+
+<div class="register-card">
+  <div class="reg-header">
+    <a href="index.html" class="reg-logo">
+      <div class="reg-logo-icon"><i class="ti ti-leaf"></i></div>
+      <div class="reg-logo-text">Agri<span>Chain</span></div>
+    </a>
+    <h2>Buat Akun Baru</h2>
+    <p>Bergabung dengan AgriChain untuk mulai verifikasi panen</p>
+  </div>
+
+  <p style="font-size:.82rem;font-weight:600;color:var(--text-mid);margin-bottom:10px">Pilih Peran</p>
+  <div class="role-select">
+    <button class="role-btn active" id="role-petani" onclick="selectRole('petani')">
+      <i class="ti ti-user"></i><span>Petani</span>
+    </button>
+    <button class="role-btn" id="role-ketua" onclick="selectRole('ketua')">
+      <i class="ti ti-users"></i><span>Ketua Petani</span>
+    </button>
+  </div>
+
+  <div class="form-stack">
+      <div class="form-group">
+        <label><i class="ti ti-user"></i> Nama </label>
+        <div class="input-wrapper">
+          <div class="input-icon"><i class="ti ti-user"></i></div>
+          <input type="text" id="nama" class="form-input" placeholder="Nama" />
+        </div>
+      </div>
+    
+    <div class="form-group">
+      <label><i class="ti ti-at"></i>Email</label>
+      <div class="input-wrapper">
+        <div class="input-icon"><i class="ti ti-mail"></i></div>
+        <input type="email" id="email" class="form-input" placeholder="email@example.com" />
+      </div>
+    </div>
+    <div class="form-group">
+  <label><i class="ti ti-map-pin"></i> Alamat</label>
+      <div class="input-wrapper">
+    <div class="input-icon"><i class="ti ti-map-pin"></i></div>
+    <input type="text" id="alamat" class="form-input" placeholder="Kota baru, Jambi" />
+     </div>
+    </div>
+
+   <div class="form-group">
+  <label><i class="ti ti-map-pin"></i> Daerah (Kelompok Tani)</label>
+  <div class="input-wrapper">
+    <div class="input-icon"><i class="ti ti-building-community"></i></div>
+    <select class="form-input" name="daerah" id="daerah">
+      <option value="" disabled selected>Pilih daerah anda...</option>
+      <option value="padang_panjang">Padang Panjang</option>
+      <option value="pagaralam">Pagaralam</option>
+      <option value="tebing_tinggi">Tebing Tinggi</option>
+    </select>
+  </div>
+</div>
+
+    <div class="form-group">
+      <label><i class="ti ti-lock"></i> Password</label>
+      <div class="input-wrapper">
+        <div class="input-icon"><i class="ti ti-lock"></i></div>
+        <input type="password" id="password" class="form-input" placeholder="Minimal 8 karakter" />
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-register" onclick="doRegister()">
+    <i class="ti ti-user-plus"></i> Buat Akun
+  </button>
+
+  <div class="login-link">Sudah punya akun? <a href="index.html">Masuk di sini</a></div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="assets/js/main.js"></script>
+<script>
+  let selectedRole = 'petani'; // Default role
+
+
+  function selectRole(r) {
+    selectedRole = r;
+    document.getElementById('role-petani').classList.toggle('active', r === 'petani');
+    document.getElementById('role-ketua').classList.toggle('active', r === 'ketua');
+  }
+
+
+  async function doRegister(event) {
+
+  const nama = document.getElementById('nama').value;
+  const email = document.getElementById('email').value;
+  const alamat = document.getElementById('alamat').value; 
+  const daerah = document.getElementById('daerah').value;
+  const password = document.getElementById('password').value;
+
+
+  if (!nama || !email || !alamat || !daerah || !password) {
+    alert("Semua kolom wajib diisi.");
+    return; 
+  }
+
+  // 3. Siapkan Payload
+  const payload = {
+    nama: nama,
+    email: email,
+    alamat: alamat,
+    daerah: daerah, 
+    password: password,
+    role: selectedRole
+  };
+
+  console.log("Data pendaftaran:", payload);
+
+    console.log(payload)
+
+    try {
+      // 4. Kirim data ke Backend menggunakan Fetch
+      const response = await fetch('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json' // Beri tahu server kita kirim JSON
+        },
+        body: JSON.stringify(payload)
+      });
+
+      // 5. Ubah respon dari server menjadi format JSON
+      const data = await response.json();
+
+      // 6. Cek apakah statusnya berhasil (201 Created)
+      if (response.ok) {
+        showToast('Akun berhasil dibuat! Silakan masuk.', 'success');
+        
+        // Alihkan ke halaman login setelah 1.5 detik
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 1500);
+      } else {
+        // Paksa pesan dari backend (data.message) muncul sebagai alert
+        alert("Pesan dari Server: " + data.message); 
+        console.log("Alasan ditolak:", data.message);
+      }
+    } catch (error) {
+      // Jika Backend mati atau tidak bisa dihubungi
+      console.error('Error:', error);
+      showToast('Terjadi kesalahan koneksi ke server.', 'error');
+    }
+  }
+</script>
+</body>
+</html>

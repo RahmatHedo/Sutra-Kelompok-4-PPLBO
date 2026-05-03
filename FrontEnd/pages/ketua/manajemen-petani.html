@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Manajemen Petani</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../../assets/css/dashboard.css">
+</head>
+<body class="dashboard-layout">
+
+<div class="main">
+  <main class="content">
+
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1><i class="ti ti-users"></i> Manajemen Petani</h1>
+        <p>Kelola data seluruh petani dalam kelompok tani Anda</p>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modal-tambah')">
+        <i class="ti ti-user-plus"></i> Tambah Petani
+      </button>
+    </div>
+
+    <!-- STATS -->
+    <div class="quick-info" style="margin-bottom:20px">
+      <div class="qi-item"><div class="qi-label">Total Petani</div><div class="qi-val">24</div></div>
+      <div class="qi-item"><div class="qi-label">Aktif</div><div class="qi-val" style="color:var(--leaf)">22</div></div>
+      <div class="qi-item"><div class="qi-label">Tidak Aktif</div><div class="qi-val" style="color:var(--text-light)">2</div></div>
+      <div class="qi-item"><div class="qi-label">Baru Bulan Ini</div><div class="qi-val" style="color:var(--sky)">2</div></div>
+    </div>
+
+    <!-- SEARCH + FILTER -->
+    <div class="filter-bar">
+      <div style="position:relative;flex:1;max-width:300px">
+        <i class="ti ti-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:15px;pointer-events:none"></i>
+        <input type="text" class="form-input" style="padding-left:36px" placeholder="Cari nama petani..." oninput="searchPetani(this.value)" />
+      </div>
+      <button class="filter-btn active" data-filter="all"><i class="ti ti-list"></i> Semua</button>
+      <button class="filter-btn" data-filter="active"><i class="ti ti-circle-check"></i> Aktif</button>
+      <button class="filter-btn" data-filter="inactive"><i class="ti ti-circle-minus"></i> Tidak Aktif</button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nama Petani</th><th>ID</th><th>Komoditas</th><th>Lahan</th><th>Panen 2025</th><th>Status</th><th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="petani-tbody"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL TAMBAH PETANI -->
+<div class="modal-overlay" id="modal-tambah">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="ti ti-user-plus"></i> Tambah Petani Baru</div>
+      <button class="modal-close" onclick="closeModal('modal-tambah')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-grid" style="gap:14px">
+      <div class="form-group">
+        <label><i class="ti ti-user"></i> Nama Lengkap</label>
+        <input type="text" class="form-input" placeholder="Nama petani" />
+      </div>
+      <div class="form-group">
+        <label><i class="ti ti-id-badge"></i> NIK</label>
+        <input type="text" class="form-input" placeholder="16 digit NIK" />
+      </div>
+      <div class="form-group">
+        <label><i class="ti ti-phone"></i> No. HP</label>
+        <input type="tel" class="form-input" placeholder="+62 8xx-xxxx-xxxx" />
+      </div>
+      <div class="form-group">
+        <label><i class="ti ti-mail"></i> Email</label>
+        <input type="email" class="form-input" placeholder="email@example.com" />
+      </div>
+      <div class="form-group">
+        <label><i class="ti ti-wheat"></i> Komoditas Utama</label>
+        <input type="text" class="form-input" placeholder="cth: Padi, Jagung" />
+      </div>
+      <div class="form-group">
+        <label><i class="ti ti-square-rotated"></i> Luas Lahan (Ha)</label>
+        <input type="number" class="form-input" placeholder="cth: 1.5" step="0.1" />
+      </div>
+      <div class="form-group span-2">
+        <label><i class="ti ti-map-pin"></i> Lokasi Lahan</label>
+        <input type="text" class="form-input" placeholder="Blok, Desa, Kecamatan" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-tambah')">Batal</button>
+      <button class="btn btn-primary" onclick="tambahPetani()"><i class="ti ti-user-plus"></i> Tambahkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT PETANI -->
+<div class="modal-overlay" id="modal-edit-petani">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="ti ti-pencil"></i> Edit Data Petani</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-petani')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modal-edit-petani-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-petani')">Batal</button>
+      <button class="btn btn-primary" onclick="savePetani()"><i class="ti ti-device-floppy"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="../../assets/js/main.js"></script>
+<script src="../../assets/js/sidebar-ketua.js"></script>
+<script>
+  renderSidebar('manajemen-petani');
+  renderTopbar('Manajemen Petani', 'AgriChain › Manajemen Petani');
+
+  let petaniData = [];
+  let filteredData = [];
+  let currentUser = {};
+
+  async function loadPetaniData() {
+    const token = localStorage.getItem('token');
+    currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (!token) {
+        window.location.href = '../../index.html';
+        return;
+    }
+    
+    try {
+        const [usersRes, harvestsRes] = await Promise.all([
+            fetch('http://localhost:3000/api/users', { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch('http://localhost:3000/api/harvests/ketua', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        
+        const data = await usersRes.json();
+        const harvestsData = (await harvestsRes.json()).data || [];
+        
+        if (usersRes.ok) {
+            petaniData = data.data.filter(u => u.role === 'petani');
+            
+            petaniData = petaniData.map(p => {
+                // Hitung total panen verified
+                const myHarvests = harvestsData.filter(h => h.petani_id === p.id && h.status === 'verified');
+                let totalKg = 0;
+                myHarvests.forEach(h => {
+                    let kg = parseFloat(h.jumlah) || 0;
+                    if (h.satuan && h.satuan.toLowerCase() === 'ton') kg = kg * 1000;
+                    if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg = kg * 100;
+                    totalKg += kg;
+                });
+                
+                return {
+                    ...p,
+                    idFormatted: 'AGR-' + p.id.toString().padStart(5, '0'),
+                    komoditas: p.komoditas || 'Belum diatur',
+                    lahan: p.lahan ? p.lahan + ' Ha' : '0 Ha',
+                    panen: (totalKg/1000).toFixed(2) + ' ton',
+                    active: p.status === 'acc'
+                };
+            });
+            
+            filteredData = [...petaniData];
+            updateStats();
+            renderTable(filteredData);
+        } else {
+            showToast(data.message || 'Gagal memuat data petani', 'error');
+        }
+    } catch(err) {
+        console.error('Error load petani:', err);
+    }
+  }
+
+  function updateStats() {
+    document.querySelector('.qi-item:nth-child(1) .qi-val').textContent = petaniData.length;
+    document.querySelector('.qi-item:nth-child(2) .qi-val').textContent = petaniData.filter(p => p.active).length;
+    document.querySelector('.qi-item:nth-child(3) .qi-val').textContent = petaniData.filter(p => !p.active).length;
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('petani-tbody');
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="ti ti-inbox"></i><h3>Tidak ada petani ditemukan</h3></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((p, i) => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--leaf),var(--mint));display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;font-weight:700;flex-shrink:0;font-family:var(--font-display)">
+              ${p.nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+            </div>
+            <strong>${p.nama}</strong>
+          </div>
+        </td>
+        <td style="font-family:monospace;font-size:.75rem;color:var(--text-light)">${p.idFormatted}</td>
+        <td style="font-size:.82rem;color:var(--text-mid)">${p.alamat}</td>
+        <td>${p.lahan}</td>
+        <td>${p.panen}</td>
+        <td>${p.active ? `<span class="badge approved"><i class="ti ti-circle-check"></i> Aktif</span>` : `<span class="badge pending"><i class="ti ti-clock"></i> Pending</span>`}</td>
+        <td>
+          <div style="display:flex;gap:5px">
+            <button class="action-btn" onclick="editPetani(${p.id})" title="Edit">
+              <i class="ti ti-pencil"></i>
+            </button>
+            <button class="action-btn" onclick="toggleStatusPetani(${p.id}, ${p.active})" title="${p.active ? 'Nonaktifkan' : 'Aktifkan'}">
+              <i class="ti ${p.active ? 'ti-user-off' : 'ti-user-check'}"></i>
+            </button>
+            <button class="action-btn danger" onclick="hapusPetani(${p.id})" title="Hapus Permanen">
+              <i class="ti ti-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function toggleStatusPetani(id, isActive) {
+      const msg = isActive ? 'nonaktifkan' : 'aktifkan';
+      if(!confirm(`Apakah Anda yakin ingin men-${msg} petani ini?`)) return;
+      
+      const token = localStorage.getItem('token');
+      try {
+          const response = await fetch(`http://localhost:3000/api/users/${id}/toggle-status`, {
+              method: 'PATCH',
+              headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if(response.ok) {
+              showToast('Status berhasil diubah', 'success');
+              loadPetaniData();
+          } else {
+              showToast('Gagal merubah status', 'error');
+          }
+      } catch(e) {
+          showToast('Koneksi server gagal', 'error');
+      }
+  }
+
+  function editPetani(id) {
+    const p = petaniData.find(u => u.id === id);
+    if(!p) return;
+    
+    document.getElementById('modal-edit-petani-body').innerHTML = `
+      <div class="form-grid" style="gap:14px">
+        <div class="form-group">
+          <label><i class="ti ti-user"></i> Nama Lengkap</label>
+          <input type="text" id="edit-nama" class="form-input" value="${p.nama}" />
+        </div>
+        <div class="form-group">
+          <label><i class="ti ti-map-pin"></i> Alamat</label>
+          <input type="text" id="edit-alamat" class="form-input" value="${p.alamat}" />
+        </div>
+      </div>
+      <input type="hidden" id="edit-id" value="${p.id}" />
+    `;
+    openModal('modal-edit-petani');
+  }
+
+  async function hapusPetani(id) {
+    if(!confirm('Apakah Anda yakin ingin menghapus petani ini?')) return;
+    
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if(response.ok) {
+            showToast('Petani berhasil dihapus', 'success');
+            loadPetaniData();
+        } else {
+            showToast(data.message || 'Gagal menghapus', 'error');
+        }
+    } catch(err) {
+        showToast('Koneksi server gagal', 'error');
+    }
+  }
+
+  async function savePetani() {
+    const id = document.getElementById('edit-id').value;
+    const nama = document.getElementById('edit-nama').value;
+    const alamat = document.getElementById('edit-alamat').value;
+    // We need daerah to update properly based on backend controller req.body
+    const daerah = petaniData.find(u => u.id == id)?.daerah || 'default';
+    
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`http://localhost:3000/api/users/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nama, alamat, daerah })
+        });
+        const data = await response.json();
+        if(response.ok) {
+            showToast('Data petani berhasil diperbarui', 'success');
+            closeModal('modal-edit-petani');
+            loadPetaniData();
+        } else {
+            showToast(data.message || 'Gagal update', 'error');
+        }
+    } catch(err) {
+        showToast('Koneksi server gagal', 'error');
+    }
+  }
+
+  function searchPetani(q) {
+    const lq = q.toLowerCase();
+    filteredData = petaniData.filter(p => p.nama.toLowerCase().includes(lq));
+    renderTable(filteredData);
+  }
+
+  initFilterBtns('.filter-btn', (filter) => {
+    if (filter === 'active')   filteredData = petaniData.filter(p => p.active);
+    else if (filter === 'inactive') filteredData = petaniData.filter(p => !p.active);
+    else filteredData = [...petaniData];
+    renderTable(filteredData);
+  });
+
+  loadPetaniData();
+</script>
+</body>
+</html>

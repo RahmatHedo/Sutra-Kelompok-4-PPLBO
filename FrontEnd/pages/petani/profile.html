@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Profil Saya</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../../assets/css/dashboard.css">
+</head>
+<body class="dashboard-layout">
+
+<div class="main">
+  <main class="content">
+
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1><i class="ti ti-user-circle"></i> Profil Saya</h1>
+        <p>Kelola informasi akun dan data pertanian Anda</p>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('modal-edit')">
+        <i class="ti ti-pencil"></i> Edit Profil
+      </button>
+    </div>
+
+    <!-- HERO -->
+    <div class="profile-hero">
+      <div class="profile-avatar-lg"><i class="ti ti-user-circle" style="font-size:48px"></i></div>
+      <div class="profile-info">
+        <h3 id="hero-nama">Memuat...</h3>
+        <p id="hero-id">ID Petani: —</p>
+        <div class="profile-tags">
+          <span class="profile-tag" id="hero-status"><i class="ti ti-wheat"></i> Petani Aktif</span>
+          <span class="profile-tag" id="hero-daerah"><i class="ti ti-map-pin"></i> —</span>
+          <span class="profile-tag" id="hero-joined"><i class="ti ti-calendar"></i> —</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRID SECTIONS -->
+    <div class="profile-grid">
+
+      <div class="profile-section">
+        <div class="section-title"><i class="ti ti-user"></i> Data Pribadi</div>
+        <div class="field-row"><span class="field-key">Nama Lengkap</span><span class="field-val" id="f-nama">-</span></div>
+        <div class="field-row"><span class="field-key">NIK</span><span class="field-val">-</span></div>
+        <div class="field-row"><span class="field-key">No. HP</span><span class="field-val">-</span></div>
+        <div class="field-row"><span class="field-key">Email</span><span class="field-val" id="f-email">-</span></div>
+        <div class="field-row"><span class="field-key">Alamat</span><span class="field-val" id="f-alamat">-</span></div>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-title"><i class="ti ti-leaf"></i> Data Pertanian</div>
+        <div class="field-row"><span class="field-key">Daerah</span><span class="field-val" id="f-daerah">-</span></div>
+        <div class="field-row"><span class="field-key">Komoditas Utama</span><span class="field-val" id="f-komoditas">-</span></div>
+        <div class="field-row"><span class="field-key">Luas Lahan Total</span><span class="field-val" id="f-lahan">-</span></div>
+        <div class="field-row"><span class="field-key">Status Akun</span><span class="field-val" id="f-status">-</span></div>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-title"><i class="ti ti-chart-bar"></i> Statistik Panen</div>
+        <div class="field-row"><span class="field-key">Total Panen Terverifikasi</span><span class="field-val" id="f-total-panen">-</span></div>
+        <div class="field-row"><span class="field-key">Disetujui</span><span class="field-val" id="f-disetujui" style="color:var(--leaf);font-weight:700">-</span></div>
+        <div class="field-row"><span class="field-key">Menunggu Verifikasi</span><span class="field-val" id="f-pending" style="color:var(--amber)">-</span></div>
+        <div class="field-row"><span class="field-key">Ditolak</span><span class="field-val" id="f-rejected" style="color:var(--rose)">-</span></div>
+        <div class="field-row"><span class="field-key">Bergabung Sejak</span><span class="field-val" id="f-joined">-</span></div>
+      </div>
+
+      <div class="profile-section">
+        <div class="section-title"><i class="ti ti-shield-lock"></i> Keamanan Akun</div>
+        <div class="field-row"><span class="field-key">Username</span><span class="field-val" id="f-username">-</span></div>
+        <div class="field-row"><span class="field-key">Password</span><span class="field-val" style="letter-spacing:2px">••••••••</span></div>
+        <div class="field-row"><span class="field-key">Autentikasi 2FA</span><span class="field-val"><span class="badge approved"><i class="ti ti-shield-check"></i> Aktif</span></span></div>
+        <div class="field-row"><span class="field-key">Login Terakhir</span><span class="field-val">Hari ini</span></div>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="showToast('Silakan cek email untuk reset password', 'info')">
+            <i class="ti ti-key"></i> Ganti Password
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL EDIT PROFIL -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="ti ti-pencil"></i> Edit Profil</div>
+      <button class="modal-close" onclick="closeModal('modal-edit')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-grid" style="gap:14px">
+      <div class="form-group">
+        <label><i class="ti ti-user"></i> Nama Lengkap</label>
+        <input type="text" id="edit-nama" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label><i class="ti ti-mail"></i> Email</label>
+        <input type="email" id="edit-email" class="form-input" disabled />
+      </div>
+      <div class="form-group span-2">
+        <label><i class="ti ti-home"></i> Alamat Lengkap</label>
+        <input type="text" id="edit-alamat" class="form-input" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit')">Batal</button>
+      <button class="btn btn-primary" onclick="saveProfile()"><i class="ti ti-device-floppy"></i> Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="../../assets/js/main.js"></script>
+<script src="../../assets/js/sidebar-petani.js"></script>
+<script>
+  renderSidebar('profile');
+  renderTopbar('Profil Saya', 'AgriChain › Profil');
+
+  let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const token = localStorage.getItem('token');
+
+  async function loadProfile() {
+    if (!token) { window.location.href = '../../index.html'; return; }
+
+    try {
+        const [userRes, histRes] = await Promise.all([
+            fetch(`http://localhost:3000/api/users/${currentUser.id}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch('http://localhost:3000/api/harvests/petani', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+
+        const userData = await userRes.json();
+        const histData = await histRes.json();
+
+        if (userRes.ok) {
+            currentUser = { ...currentUser, ...userData.data };
+            localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+
+        renderProfile(currentUser);
+
+        if (histRes.ok) {
+            const harvests = histData.data;
+            const verified = harvests.filter(h => h.status === 'verified');
+            const pending = harvests.filter(h => h.status === 'pending');
+            const rejected = harvests.filter(h => h.status === 'rejected');
+
+            let totalVerifiedKg = 0;
+            verified.forEach(h => {
+                let kg = parseFloat(h.jumlah) || 0;
+                if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
+                if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
+                totalVerifiedKg += kg;
+            });
+
+            document.getElementById('f-total-panen').textContent = totalVerifiedKg > 1000
+                ? (totalVerifiedKg / 1000).toFixed(2) + ' Ton' : totalVerifiedKg.toFixed(0) + ' kg';
+            document.getElementById('f-disetujui').textContent = verified.length + ' pengajuan';
+            document.getElementById('f-pending').textContent = pending.length + ' pengajuan';
+            document.getElementById('f-rejected').textContent = rejected.length + ' pengajuan';
+        }
+    } catch(err) {
+        console.error('Error load profile:', err);
+        renderProfile(currentUser);
+    }
+  }
+
+  function renderProfile(user) {
+    document.getElementById('hero-nama').textContent = user.nama || 'Nama Belum Diatur';
+    document.getElementById('hero-id').textContent = 'ID Petani: AGR-' + (user.id ? String(user.id).padStart(5, '0') : '00000');
+    document.getElementById('hero-status').innerHTML = '<i class="ti ti-wheat"></i> ' + (user.status === 'acc' ? 'Petani Aktif' : 'Petani Pending');
+    document.getElementById('hero-daerah').innerHTML = '<i class="ti ti-map-pin"></i> ' + (user.daerah || '-');
+
+    document.getElementById('f-nama').textContent = user.nama || '-';
+    document.getElementById('f-email').textContent = user.email || '-';
+    document.getElementById('f-alamat').textContent = user.alamat || '-';
+    document.getElementById('f-daerah').textContent = user.daerah || '-';
+    document.getElementById('f-komoditas').textContent = user.komoditas || '-';
+    document.getElementById('f-lahan').textContent = user.lahan ? user.lahan + ' Ha' : '-';
+    document.getElementById('f-status').innerHTML = user.status === 'acc'
+        ? '<span class="badge approved"><i class="ti ti-circle-check"></i> Aktif</span>'
+        : '<span class="badge pending"><i class="ti ti-clock"></i> Pending</span>';
+    document.getElementById('f-username').textContent = user.email ? user.email.split('@')[0] : '-';
+
+    if (user.created_at) {
+        const d = new Date(user.created_at);
+        const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        document.getElementById('hero-joined').innerHTML = '<i class="ti ti-calendar"></i> Bergabung ' + monthNames[d.getMonth()] + ' ' + d.getFullYear();
+        document.getElementById('f-joined').textContent = monthNames[d.getMonth()] + ' ' + d.getFullYear();
+    }
+
+    document.getElementById('edit-nama').value = user.nama || '';
+    document.getElementById('edit-email').value = user.email || '';
+    document.getElementById('edit-alamat').value = user.alamat || '';
+  }
+
+  async function saveProfile() {
+    const nama = document.getElementById('edit-nama').value;
+    const alamat = document.getElementById('edit-alamat').value;
+
+    try {
+        const response = await fetch(`http://localhost:3000/api/users/${currentUser.id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nama, alamat, daerah: currentUser.daerah })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            showToast('Profil berhasil diperbarui', 'success');
+            currentUser.nama = nama;
+            currentUser.alamat = alamat;
+            localStorage.setItem('user', JSON.stringify(currentUser));
+            renderProfile(currentUser);
+            closeModal('modal-edit');
+        } else {
+            showToast(data.message || 'Gagal update profil', 'error');
+        }
+    } catch(err) {
+        showToast('Koneksi server gagal', 'error');
+    }
+  }
+
+  loadProfile();
+</script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriChain — Dashboard Ketua</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<link rel="stylesheet" href="../../assets/css/dashboard.css">
+</head>
+<body class="dashboard-layout">
+
+<div class="main">
+  <main class="content">
+
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h2 id="welcome-name">Selamat Datang! 👋</h2>
+        <p id="welcome-sub">Ada <strong style="color:var(--lime)">0 pengajuan</strong> yang menunggu verifikasi Anda hari ini</p>
+      </div>
+      <div class="welcome-date">
+        <small>Hari ini</small>
+        <strong id="today-date">—</strong>
+      </div>
+    </div>
+
+    <!-- STATS: 6 cards for ketua -->
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon green"><i class="ti ti-users"></i></div>
+          <span class="stat-trend up"><i class="ti ti-trending-up"></i> Aktif</span>
+        </div>
+        <div class="stat-value" id="stat-petani-aktif">—</div>
+        <div class="stat-label">Total Petani Aktif</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon green"><i class="ti ti-wheat"></i></div>
+          <span class="stat-trend up"><i class="ti ti-trending-up"></i> Bulan Ini</span>
+        </div>
+        <div class="stat-value" id="stat-panen-bulan">—</div>
+        <div class="stat-label">Total Panen Bulan Ini</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon amber"><i class="ti ti-clock"></i></div>
+          <span class="stat-trend neu">Perlu aksi</span>
+        </div>
+        <div class="stat-value" id="stat-pending">—</div>
+        <div class="stat-label">Menunggu Verifikasi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon green"><i class="ti ti-circle-check"></i></div>
+          <span class="stat-trend up"><i class="ti ti-trending-up"></i> Baik</span>
+        </div>
+        <div class="stat-value" id="stat-approved">—</div>
+        <div class="stat-label">Total Disetujui</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon rose"><i class="ti ti-circle-x"></i></div>
+          <span class="stat-trend down">Ditolak</span>
+        </div>
+        <div class="stat-value" id="stat-rejected">—</div>
+        <div class="stat-label">Ditolak / Revisi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon sky"><i class="ti ti-chart-pie"></i></div>
+          <span class="stat-trend up" id="stat-persetujuan-trend">—</span>
+        </div>
+        <div class="stat-value" id="stat-persetujuan">—</div>
+        <div class="stat-label">Tingkat Persetujuan</div>
+      </div>
+    </div>
+
+    <!-- CHART + PENDING LIST -->
+    <div class="bottom-grid section-gap">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="ti ti-chart-bar"></i> Produksi Kelompok (Ton)</div>
+          <a href="laporan.html" class="card-action">Laporan lengkap <i class="ti ti-arrow-right"></i></a>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap" id="chart-wrap"></div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--leaf)"></div> Panen total kelompok (ton)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--lime);opacity:.7"></div> Diverifikasi</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENDING VERIFIKASI -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="ti ti-clock"></i> Antrian Verifikasi</div>
+          <a href="verifikasi.html" class="card-action">Semua <i class="ti ti-arrow-right"></i></a>
+        </div>
+        <div class="activity-list" id="antrian-list">
+          <div style="padding:20px;text-align:center;color:var(--text-light)">Memuat data...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP PETANI -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="ti ti-trophy"></i> Top Petani Bulan Ini</div>
+        <a href="manajemen-petani.html" class="card-action">Semua petani <i class="ti ti-arrow-right"></i></a>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Nama Petani</th><th>Komoditas Utama</th><th>Lahan</th><th>Total Panen</th><th>Status Akun</th>
+            </tr>
+          </thead>
+          <tbody id="top-petani-tbody">
+            <tr><td colspan="6" style="text-align:center">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="../../assets/js/main.js"></script>
+<script src="../../assets/js/sidebar-ketua.js"></script>
+<script>
+  renderSidebar('dashboard');
+  renderTopbar('Dashboard', 'AgriChain › Dashboard Ketua');
+
+  async function loadDashboard() {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+    if (!token) {
+        window.location.href = '../../index.html';
+        return;
+    }
+
+    const welcomeEl = document.getElementById('welcome-name');
+    if (user.nama && welcomeEl) {
+        welcomeEl.textContent = `Selamat Datang, ${user.nama.split(' ')[0]}! 👋`;
+    }
+
+    try {
+        const [statsRes, histRes, usersRes] = await Promise.all([
+            fetch('http://localhost:3000/api/harvests/stats', { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch('http://localhost:3000/api/harvests/ketua', { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch('http://localhost:3000/api/users', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+
+        const statsData = await statsRes.json();
+        const histData = await histRes.json();
+        const usersData = await usersRes.json();
+
+        if (statsRes.ok && histRes.ok && usersRes.ok) {
+            updateUI(statsData.data, histData.data, usersData.data);
+        } else {
+            console.error('API Error:', statsData, histData, usersData);
+        }
+    } catch (error) {
+        console.error('Error load dashboard:', error);
+    }
+  }
+
+  function updateUI(stats, harvests, users) {
+    const totalPengajuan = stats.total_pengajuan || 0;
+    const totalPending = stats.total_pending || 0;
+
+    const subEl = document.getElementById('welcome-sub');
+    if (subEl) {
+        subEl.innerHTML = `Ada <strong style="color:var(--lime)">${totalPending} pengajuan</strong> yang menunggu verifikasi Anda hari ini`;
+    }
+
+    const approved = harvests.filter(h => h.status === 'verified').length;
+    const rejected = harvests.filter(h => h.status === 'rejected').length;
+
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    let totalPanenBulanIniKg = 0;
+
+    harvests.filter(h => h.status === 'verified').forEach(h => {
+        let kg = parseFloat(h.jumlah) || 0;
+        if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
+        if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
+        const hDate = new Date(h.tanggal_panen);
+        if (hDate.getMonth() === currentMonth && hDate.getFullYear() === currentYear) {
+            totalPanenBulanIniKg += kg;
+        }
+    });
+
+    const petaniAktifCount = users.filter(u => u.role === 'petani' && u.status === 'acc').length;
+    const pctPersetujuan = totalPengajuan > 0 ? ((approved / totalPengajuan) * 100).toFixed(1) + '%' : '0%';
+
+    document.getElementById('stat-petani-aktif').textContent = petaniAktifCount;
+    document.getElementById('stat-panen-bulan').textContent = (totalPanenBulanIniKg / 1000).toFixed(2) + ' T';
+    document.getElementById('stat-pending').textContent = totalPending;
+    document.getElementById('stat-approved').textContent = approved;
+    document.getElementById('stat-rejected').textContent = rejected;
+    document.getElementById('stat-persetujuan').textContent = pctPersetujuan;
+    document.getElementById('stat-persetujuan-trend').textContent = pctPersetujuan;
+
+    // Antrian Verifikasi
+    const pendingList = harvests.filter(h => h.status === 'pending');
+    const antrianEl = document.getElementById('antrian-list');
+    if (antrianEl) {
+        if (pendingList.length === 0) {
+            antrianEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-light)">Tidak ada antrian verifikasi.</div>';
+        } else {
+            antrianEl.innerHTML = pendingList.slice(0, 4).map(h => `
+                <div class="activity-item">
+                    <div class="activity-icon pending"><i class="ti ti-clock"></i></div>
+                    <div class="activity-text">
+                      <div class="activity-title">${h.nama_petani} — ${h.komoditas} ${h.jumlah} ${h.satuan}</div>
+                      <div class="activity-sub">${h.lokasi} · AGC-${String(h.id).padStart(4,'0')} · ${new Date(h.created_at).toLocaleDateString('id-ID')}</div>
+                    </div>
+                    <a href="verifikasi.html" class="action-btn btn-sm"><i class="ti ti-eye"></i></a>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Top Petani
+    const petaniList = users.filter(u => u.role === 'petani');
+    const petaniStats = petaniList.map(p => {
+        let totalKg = 0;
+        harvests.filter(h => h.petani_id === p.id && h.status === 'verified').forEach(h => {
+            let kg = parseFloat(h.jumlah) || 0;
+            if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
+            if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
+            totalKg += kg;
+        });
+        return { ...p, totalKg };
+    });
+
+    petaniStats.sort((a, b) => b.totalKg - a.totalKg);
+    const topPetani = petaniStats.slice(0, 5);
+    const tbody = document.getElementById('top-petani-tbody');
+    if (tbody) {
+        tbody.innerHTML = topPetani.length === 0
+            ? '<tr><td colspan="6" style="text-align:center">Belum ada data petani.</td></tr>'
+            : topPetani.map((p, i) => `
+                <tr>
+                  <td><span style="font-weight:700;color:${i===0?'var(--amber)':'var(--text-mid)'}">${i+1}</span></td>
+                  <td><strong>${p.nama}</strong></td>
+                  <td>${p.komoditas || '-'}</td>
+                  <td>${p.lahan ? p.lahan + ' Ha' : '-'}</td>
+                  <td>${(p.totalKg / 1000).toFixed(2)} ton</td>
+                  <td>${p.status === 'acc' ? '<span class="badge approved">Aktif</span>' : '<span class="badge pending">Nonaktif</span>'}</td>
+                </tr>
+            `).join('');
+    }
+
+    // Chart bulanan
+    const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    const chartMap = {};
+    monthNames.forEach(m => chartMap[m] = { month: m, panen: 0, ver: 0 });
+
+    harvests.forEach(h => {
+        const d = new Date(h.tanggal_panen);
+        if (d.getFullYear() === currentYear) {
+            const mName = monthNames[d.getMonth()];
+            let kg = parseFloat(h.jumlah) || 0;
+            if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
+            if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
+            chartMap[mName].panen += kg;
+            if (h.status === 'verified') chartMap[mName].ver += kg;
+        }
+    });
+
+    const displayData = monthNames.slice(0, new Date().getMonth() + 1).map(m => ({
+        month: m,
+        panen: chartMap[m].panen / 1000,
+        ver: chartMap[m].ver / 1000
+    }));
+
+    const maxVal = Math.max(...displayData.map(d => Math.max(d.panen, d.ver)), 1);
+    document.getElementById('chart-wrap').innerHTML = '';
+    renderBarChart('chart-wrap', displayData, maxVal * 1.2);
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>
