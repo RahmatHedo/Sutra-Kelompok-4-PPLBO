@@ -1,9 +1,9 @@
-/* ============================================
-   AGRICHAIN — main.js
+﻿/* ============================================
+   Sutra — main.js
    Shared utilities: Toast, Modal, Sidebar toggle
    ============================================ */
 
-// ── TOAST ──
+// â”€â”€ TOAST â”€â”€
 function showToast(message, type = 'success', duration = 3000) {
   const container = document.getElementById('toast-container');
   if (!container) return;
@@ -26,7 +26,7 @@ function showToast(message, type = 'success', duration = 3000) {
   }, duration);
 }
 
-// ── MODAL ──
+// â”€â”€ MODAL â”€â”€
 function openModal(id) {
   const overlay = document.getElementById(id);
   if (overlay) overlay.classList.add('open');
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── SIDEBAR TOGGLE (Mobile) ──
+// â”€â”€ SIDEBAR TOGGLE (Mobile) â”€â”€
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
@@ -62,7 +62,7 @@ function closeSidebar() {
   if (overlay) overlay.classList.remove('show');
 }
 
-// ── ACTIVE NAV DETECTION ──
+// â”€â”€ ACTIVE NAV DETECTION â”€â”€
 function setActiveNav() {
   const currentPage = window.location.pathname.split('/').pop();
   document.querySelectorAll('.nav-item[href]').forEach(item => {
@@ -73,7 +73,7 @@ function setActiveNav() {
   });
 }
 
-// ── DATE HELPER ──
+// â”€â”€ DATE HELPER â”€â”€
 function getTodayString(locale = 'id-ID') {
   return new Date().toLocaleDateString(locale, {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
@@ -86,7 +86,7 @@ function getTodayShort(locale = 'id-ID') {
   });
 }
 
-// ── CHART RENDERER ──
+// â”€â”€ CHART RENDERER â”€â”€
 function renderBarChart(containerId, data, maxVal) {
   const wrap = document.getElementById(containerId);
   if (!wrap) return;
@@ -104,7 +104,7 @@ function renderBarChart(containerId, data, maxVal) {
   `).join('');
 }
 
-// ── TABLE FILTER ──
+// â”€â”€ TABLE FILTER â”€â”€
 function initFilterBtns(selector, callback) {
   document.querySelectorAll(selector).forEach(btn => {
     btn.addEventListener('click', function () {
@@ -115,14 +115,14 @@ function initFilterBtns(selector, callback) {
   });
 }
 
-// ── FORMAT CURRENCY (Rupiah) ──
+// â”€â”€ FORMAT CURRENCY (Rupiah) â”€â”€
 function formatRupiah(number) {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency', currency: 'IDR', minimumFractionDigits: 0
   }).format(number);
 }
 
-// ── INIT ──
+// â”€â”€ INIT â”€â”€
 document.addEventListener('DOMContentLoaded', () => {
   setActiveNav();
 

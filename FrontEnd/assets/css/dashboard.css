@@ -45,10 +45,10 @@ body.dashboard-layout {
 .logo-icon i { font-size: 20px; color: var(--forest); }
 .logo-text {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.32rem;
+  font-weight: 700;
+  font-size: 1.28rem;
   color: #fff;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
 }
 .logo-text span { color: var(--lime); }
 .sidebar-role {
@@ -369,11 +369,12 @@ body.dashboard-layout {
 .welcome-date { text-align: right; z-index: 1; flex-shrink: 0; }
 .welcome-date small { font-size: 0.77rem; opacity: .6; display: block; margin-bottom: 3px; }
 .welcome-date strong {
-  font-family: var(--font-display);
+  font-family: var(--font-number);
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--lime);
   display: block;
+  letter-spacing: -0.5px;
 }
 
 /* ── STAT CARDS ── */
@@ -426,12 +427,13 @@ body.dashboard-layout {
 .stat-trend.down{ background: var(--rose-light); color: var(--rose); }
 .stat-trend.neu { background: var(--sky-light); color: var(--sky); }
 .stat-value {
-  font-family: var(--font-display);
+  font-family: var(--font-number);
   font-size: 1.75rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-dark);
   line-height: 1;
   margin-bottom: 4px;
+  letter-spacing: -0.5px;
 }
 .stat-label { font-size: 0.77rem; color: var(--text-light); }
 
@@ -585,9 +587,9 @@ body.dashboard-layout {
   flex-wrap: wrap;
 }
 .tracking-id {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.97rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-dark);
 }
 .tracking-id span { color: var(--text-light); font-weight: 400; font-size: 0.8rem; }

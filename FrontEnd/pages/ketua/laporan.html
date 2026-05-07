@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgriChain — Laporan Produksi</title>
+<title>Sutra — Laporan Produksi</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="../../assets/css/style.css">
 <link rel="stylesheet" href="../../assets/css/dashboard.css">
@@ -152,7 +152,7 @@
 <script src="../../assets/js/sidebar-ketua.js"></script>
 <script>
   renderSidebar('laporan');
-  renderTopbar('Laporan Produksi', 'AgriChain › Laporan');
+  renderTopbar('Laporan Produksi', 'Sutra › Laporan');
 
   let allHarvests = [];
 
@@ -293,7 +293,7 @@
       });
       
       const kWrap = document.getElementById('komoditas-wrap');
-      const icons = { 'Padi': 'ti-wheat', 'Jagung': 'ti-plant', 'Kedelai': 'ti-leaf', 'Singkong': 'ti-plant-2', 'Cabai': 'ti-flame', 'Bawang Merah': 'ti-leaf' };
+      const icons = { 'Padi': 'ti-wheat', 'Jagung': 'ti-plant', 'Kedelai': 'ti-plant', 'Singkong': 'ti-plant-2', 'Cabai': 'ti-flame', 'Bawang Merah': 'ti-plant' };
       const colors = { 'Padi': 'var(--leaf),var(--mint)', 'Jagung': 'var(--amber),#f0c060', 'Kedelai': 'var(--sky),#7ec8e0', 'Singkong': 'var(--rose),#f09090', 'Cabai': 'var(--red),#ff6b6b' };
       
       let distArr = Object.keys(distMap).map(k => ({ k, kg: distMap[k] })).sort((a,b) => b.kg - a.kg);
@@ -304,7 +304,7 @@
       
       kWrap.innerHTML = distArr.map(d => {
           const pct = ((d.kg / totalVerified) * 100).toFixed(1);
-          const icon = icons[d.k] || 'ti-leaf-2';
+          const icon = icons[d.k] || 'ti-plant-2';
           const color = colors[d.k] || '#9b8cff,#c4b8ff';
           return `<div class="komoditas-bar">
             <div class="komoditas-label"><i class="ti ${icon}"></i> ${d.k}</div>

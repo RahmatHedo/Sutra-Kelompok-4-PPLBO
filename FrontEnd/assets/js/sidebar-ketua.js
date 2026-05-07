@@ -1,12 +1,12 @@
-/* ============================================
-   AGRICHAIN — sidebar-ketua.js
+﻿/* ============================================
+   Sutra — sidebar-ketua.js
    Injects sidebar HTML for ketua pages
    ============================================ */
 
 function renderSidebar(activePage) {
   const nav = [
     { id: 'dashboard',          href: 'dashboard.html',          icon: 'ti-home',          label: 'Dashboard' },
-    { id: 'verifikasi',         href: 'verifikasi.html',         icon: 'ti-shield-check',  label: 'Verifikasi Panen', badge: '…' },
+    { id: 'verifikasi',         href: 'verifikasi.html',         icon: 'ti-shield-check',  label: 'Verifikasi Panen', badge: 'â€¦' },
     { id: 'manajemen-petani',   href: 'manajemen-petani.html',   icon: 'ti-users',         label: 'Manajemen Petani', group: 'Kelola' },
     { id: 'laporan',            href: 'laporan.html',            icon: 'ti-report-analytics', label: 'Laporan Produksi' },
     { id: 'audit-log',          href: 'audit-log.html',          icon: 'ti-history',       label: 'Audit Log' },
@@ -16,8 +16,8 @@ function renderSidebar(activePage) {
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <a class="logo-mark" href="../../index.html" style="text-decoration:none">
-        <div class="logo-icon"><i class="ti ti-leaf"></i></div>
-        <div class="logo-text">Agri<span>Chain</span></div>
+        <div class="logo-icon"><i class="ti ti-plant"></i></div>
+        <div class="logo-text">Su<span>tra</span></div>
       </a>
       <div class="sidebar-role">
         <div class="role-dot"></div>

@@ -1,23 +1,19 @@
-const db = require('../config/connection');
+const User = require('../models/User');
 
 const getAllUsers = async (req, res) => {
     try {
         const role = req.user.role;
         const userId = req.user.id;
         
-        let query = 'SELECT id, nama, email, alamat, daerah, komoditas, lahan, role, status, created_at FROM users';
-        let params = [];
-
+        let daerah = null;
         if (role === 'ketua') {
-            const [ketuaInfo] = await db.query('SELECT daerah FROM users WHERE id = ?', [userId]);
+            const ketuaInfo = await User.getKetuaDaerah(userId);
             if (ketuaInfo.length > 0) {
-                const daerah = ketuaInfo[0].daerah;
-                query += ' WHERE (role = "petani" OR role = "ketua") AND daerah = ?';
-                params.push(daerah);
+                daerah = ketuaInfo[0].daerah;
             }
         }
 
-        const [rows] = await db.query(query, params);
+        const rows = await User.findAll(role, daerah);
         
         res.json({
             message: "Berhasil mengambil data user",
@@ -34,8 +30,7 @@ const getUserById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const query = 'SELECT id, nama, email, alamat, daerah, komoditas, lahan, role, status, created_at FROM users WHERE id = ?';
-        const [rows] = await db.query(query, [id]);
+        const rows = await User.findProfileById(id);
 
         if (rows.length === 0) {
             return res.status(404).json({ message: "User tidak ditemukan!" });
@@ -62,8 +57,7 @@ const updateUser = async (req, res) => {
     }
 
     try {
-        const query = 'UPDATE users SET nama = ?, alamat = ?, daerah = ? WHERE id = ?';
-        const [result] = await db.query(query, [nama, alamat, daerah, id]);
+        const result = await User.updateProfile(id, { nama, alamat, daerah });
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "User tidak ditemukan atau tidak ada perubahan!" });
@@ -81,8 +75,7 @@ const approveKetua = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const query = 'UPDATE users SET status = "acc" WHERE id = ? AND role = "ketua"';
-        const [result] = await db.query(query, [id]);
+        const result = await User.approveKetua(id);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ 
@@ -102,8 +95,7 @@ const deleteUser = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const query = 'DELETE FROM users WHERE id = ?';
-        const [result] = await db.query(query, [id]);
+        const result = await User.deleteUser(id);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "User tidak ditemukan!" });
@@ -121,7 +113,7 @@ const toggleUserStatus = async (req, res) => {
     const { id } = req.params;
     
     try {
-        const [users] = await db.query('SELECT status FROM users WHERE id = ?', [id]);
+        const users = await User.getStatus(id);
         if (users.length === 0) {
             return res.status(404).json({ message: "User tidak ditemukan!" });
         }
@@ -129,8 +121,7 @@ const toggleUserStatus = async (req, res) => {
         const currentStatus = users[0].status;
         const newStatus = currentStatus === 'acc' ? 'pending' : 'acc';
         
-        const query = 'UPDATE users SET status = ? WHERE id = ?';
-        await db.query(query, [newStatus, id]);
+        await User.updateStatus(id, newStatus);
         
         res.json({ message: `Status akun berhasil diubah menjadi ${newStatus === 'acc' ? 'Aktif' : 'Nonaktif'}` });
     } catch (error) {

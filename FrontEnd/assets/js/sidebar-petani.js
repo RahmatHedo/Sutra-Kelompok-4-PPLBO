@@ -1,5 +1,5 @@
-/* ============================================
-   AGRICHAIN — sidebar-petani.js
+﻿/* ============================================
+   Sutra — sidebar-petani.js
    Injects sidebar HTML for petani pages
    ============================================ */
 
@@ -7,9 +7,9 @@ function renderSidebar(activePage) {
   const nav = [
     { id: 'dashboard',    href: 'dashboard.html',    icon: 'ti-home',          label: 'Dashboard' },
     { id: 'input-panen',  href: 'input-panen.html',  icon: 'ti-plus',          label: 'Input Hasil Panen' },
-    { id: 'riwayat',      href: 'riwayat.html',      icon: 'ti-clipboard-list',label: 'Riwayat Verifikasi', badge: '…' },
+    { id: 'riwayat',      href: 'riwayat.html',      icon: 'ti-clipboard-list',label: 'Riwayat Verifikasi', badge: 'â€¦' },
     { id: 'tracking',     href: 'tracking.html',     icon: 'ti-map-pin',       label: 'Tracking Panen', group: 'Monitoring' },
-    { id: 'notifikasi',   href: 'notifikasi.html',   icon: 'ti-bell',          label: 'Notifikasi', badge: '…', group: 'Akun' },
+    { id: 'notifikasi',   href: 'notifikasi.html',   icon: 'ti-bell',          label: 'Notifikasi', badge: 'â€¦', group: 'Akun' },
     { id: 'profile',      href: 'profile.html',      icon: 'ti-user',          label: 'Profil Saya' },
   ];
 
@@ -20,8 +20,8 @@ function renderSidebar(activePage) {
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <a class="logo-mark" href="../../index.html" style="text-decoration:none">
-        <div class="logo-icon"><i class="ti ti-leaf"></i></div>
-        <div class="logo-text">Agri<span>Chain</span></div>
+        <div class="logo-icon"><i class="ti ti-plant"></i></div>
+        <div class="logo-text">Su<span>tra</span></div>
       </a>
       <div class="sidebar-role">
         <div class="role-dot"></div>

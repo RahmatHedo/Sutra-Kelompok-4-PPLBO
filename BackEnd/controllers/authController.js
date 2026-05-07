@@ -1,4 +1,4 @@
-const db = require('../config/connection');
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -13,7 +13,7 @@ const register = async (req, res) => {
 
     try {
         // 1. Cek email langsung ke database
-        const [userExists] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+        const userExists = await User.findByEmail(email);
         if (userExists.length > 0) {
             return res.status(400).json({ message: "Email sudah terdaftar!" });
         }
@@ -33,11 +33,9 @@ const register = async (req, res) => {
         }
 
         // 4. Insert data langsung
-        const query = `
-            INSERT INTO users (nama, email, alamat, daerah, password, role, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-        await db.query(query, [nama, email, alamat, daerah, hashedPassword, roleFix, statusFix]);
+        await User.create({
+            nama, email, alamat, daerah, password: hashedPassword, role: roleFix, status: statusFix
+        });
 
         res.status(201).json({
             message: statusFix === 'acc' 
@@ -62,7 +60,7 @@ const login = async (req, res) => {
 
     try {
         // 1. Cari user berdasarkan email
-        const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+        const users = await User.findByEmail(email);
         
         if (users.length === 0) {
             return res.status(401).json({ message: "Email tidak ditemukan!" });

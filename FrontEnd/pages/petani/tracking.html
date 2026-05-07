@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgriChain — Tracking Panen</title>
+<title>Sutra — Tracking Panen</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="../../assets/css/style.css">
 <link rel="stylesheet" href="../../assets/css/dashboard.css">
@@ -35,9 +35,9 @@
 <script src="../../assets/js/sidebar-petani.js"></script>
 <script>
   renderSidebar('tracking');
-  renderTopbar('Tracking Panen', 'AgriChain › Tracking');
+  renderTopbar('Tracking Panen', 'Sutra › Tracking');
 
-  const komoditasIcons = { Padi:'ti-wheat', Jagung:'ti-plant', Singkong:'ti-plant-2', Kedelai:'ti-seed', Cabai:'ti-pepper', default:'ti-leaf' };
+  const komoditasIcons = { Padi:'ti-wheat', Jagung:'ti-plant', Singkong:'ti-plant-2', Kedelai:'ti-seed', Cabai:'ti-pepper', default:'ti-plant' };
 
   async function loadTrackingData() {
     const token = localStorage.getItem('token');
@@ -108,7 +108,7 @@
             <div class="timeline-dot done"><i class="ti ti-check"></i></div>
             <div class="timeline-content">
               <div class="timeline-title">Finalisasi & Sertifikasi</div>
-              <div class="timeline-desc">Data panen tercatat dan tersimpan di sistem AgriChain</div>
+              <div class="timeline-desc">Data panen tercatat dan tersimpan di sistem Sutra</div>
             </div>
             <div class="timeline-time">${updatedAt}</div>
           </div>

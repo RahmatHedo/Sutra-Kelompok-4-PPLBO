@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgriChain — Riwayat Verifikasi</title>
+<title>Sutra — Riwayat Verifikasi</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.11.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="../../assets/css/style.css">
 <link rel="stylesheet" href="../../assets/css/dashboard.css">
@@ -104,11 +104,11 @@
 <script src="../../assets/js/sidebar-petani.js"></script>
 <script>
   renderSidebar('riwayat');
-  renderTopbar('Riwayat Verifikasi', 'AgriChain › Riwayat');
+  renderTopbar('Riwayat Verifikasi', 'Sutra › Riwayat');
 
   let riwayatData = [];
 
-  const komoditasIcons = { Padi:'ti-wheat', Jagung:'ti-plant', Singkong:'ti-plant-2', Kedelai:'ti-seed', Cabai:'ti-pepper', default:'ti-leaf' };
+  const komoditasIcons = { Padi:'ti-wheat', Jagung:'ti-plant', Singkong:'ti-plant-2', Kedelai:'ti-seed', Cabai:'ti-pepper', default:'ti-plant' };
 
   async function loadData() {
     const token = localStorage.getItem('token');

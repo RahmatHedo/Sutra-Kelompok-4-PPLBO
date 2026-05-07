@@ -1,4 +1,5 @@
-const db = require('../config/connection');
+const Harvest = require('../models/Harvest');
+const User = require('../models/User');
 
 // 1. CREATE HARVEST (Input Panen)
 const createHarvest = async (req, res) => {
@@ -11,14 +12,9 @@ const createHarvest = async (req, res) => {
     }
 
     try {
-        const query = `
-            INSERT INTO harvests 
-            (petani_id, tanggal_panen, komoditas, jumlah, satuan, lokasi, luas, cuaca, kualitas, catatan, foto, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
-        `;
-        const values = [petani_id, tanggal_panen, komoditas, jumlah, satuan, lokasi, luas || null, cuaca || null, kualitas || null, catatan || null, foto];
-        
-        const [result] = await db.query(query, values);
+        const result = await Harvest.create({
+            petani_id, tanggal_panen, komoditas, jumlah, satuan, lokasi, luas, cuaca, kualitas, catatan, foto, status: 'pending'
+        });
 
         res.status(201).json({
             message: "Data panen berhasil disimpan dan menunggu verifikasi ketua",
@@ -35,8 +31,7 @@ const getHarvestsByPetani = async (req, res) => {
     const petani_id = req.user.id;
 
     try {
-        const query = 'SELECT * FROM harvests WHERE petani_id = ? ORDER BY created_at DESC';
-        const [rows] = await db.query(query, [petani_id]);
+        const rows = await Harvest.findByPetaniId(petani_id);
         
         res.json({
             message: "Berhasil mengambil riwayat panen",
@@ -54,21 +49,13 @@ const getHarvestsForKetua = async (req, res) => {
 
     try {
         // Ambil daerah dari ketua
-        const [ketuaInfo] = await db.query('SELECT daerah FROM users WHERE id = ?', [ketua_id]);
+        const ketuaInfo = await User.getKetuaDaerah(ketua_id);
         if (ketuaInfo.length === 0) {
             return res.status(404).json({ message: "Ketua tidak ditemukan" });
         }
         
         const daerah = ketuaInfo[0].daerah;
-
-        const query = `
-            SELECT h.*, u.nama as nama_petani 
-            FROM harvests h
-            JOIN users u ON h.petani_id = u.id
-            WHERE u.daerah = ? 
-            ORDER BY h.created_at DESC
-        `;
-        const [rows] = await db.query(query, [daerah]);
+        const rows = await Harvest.findByDaerah(daerah);
         
         res.json({
             message: "Berhasil mengambil data panen kelompok",
@@ -90,8 +77,7 @@ const updateHarvestStatus = async (req, res) => {
     }
 
     try {
-        const query = 'UPDATE harvests SET status = ? WHERE id = ?';
-        const [result] = await db.query(query, [status, id]);
+        const result = await Harvest.updateStatus(id, status);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Data panen tidak ditemukan" });
@@ -112,25 +98,13 @@ const getHarvestStats = async (req, res) => {
     try {
         let stats = {};
         if (role === 'petani') {
-            const [rows] = await db.query(`
-                SELECT 
-                    COUNT(*) as total_panen,
-                    SUM(CASE WHEN status = 'verified' THEN jumlah ELSE 0 END) as total_verified_kg
-                FROM harvests WHERE petani_id = ?
-            `, [user_id]);
+            const rows = await Harvest.getStatsPetani(user_id);
             stats = rows[0];
         } else if (role === 'ketua') {
-            const [ketuaInfo] = await db.query('SELECT daerah FROM users WHERE id = ?', [user_id]);
+            const ketuaInfo = await User.getKetuaDaerah(user_id);
             const daerah = ketuaInfo[0].daerah;
             
-            const [rows] = await db.query(`
-                SELECT 
-                    COUNT(*) as total_pengajuan,
-                    SUM(CASE WHEN h.status = 'pending' THEN 1 ELSE 0 END) as total_pending
-                FROM harvests h
-                JOIN users u ON h.petani_id = u.id
-                WHERE u.daerah = ?
-            `, [daerah]);
+            const rows = await Harvest.getStatsKetua(daerah);
             stats = rows[0];
         }
 
