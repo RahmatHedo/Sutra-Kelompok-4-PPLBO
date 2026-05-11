@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    Sutra — sidebar-petani.js
    Injects sidebar HTML for petani pages
    ============================================ */
@@ -96,6 +96,17 @@ function renderSidebar(activePage) {
           nBadge.style.background = 'var(--amber)';
           nBadge.style.color = '#fff';
           if (recent === 0) nBadge.style.display = 'none';
+        }
+        
+        // Update topbar notif dot
+        const notifDot = document.querySelector('.topbar-right .notif-dot');
+        if (notifDot) {
+            if (recent > 0) {
+                notifDot.style.display = 'flex';
+                notifDot.textContent = recent;
+            } else {
+                notifDot.style.display = 'none';
+            }
         }
       }).catch(() => {});
   }

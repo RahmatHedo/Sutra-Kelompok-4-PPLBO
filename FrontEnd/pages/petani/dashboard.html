@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -16,7 +16,7 @@
     <!-- DASHBOARD PAGE -->
     <div class="welcome-banner">
       <div class="welcome-text">
-        <h2 id="welcome-name">Selamat Datang! 👋</h2>
+        <h2 id="welcome-name">Selamat Datang! </h2>
         <p>Pantau hasil panen &amp; status verifikasi Anda hari ini</p>
       </div>
       <div class="welcome-date">
@@ -152,34 +152,36 @@
         welcomeEl.textContent = `Selamat Datang, ${user.nama.split(' ')[0]}! 👋`;
     }
 
+    const currentYear = new Date().getFullYear();
     try {
-        const [statsRes, histRes] = await Promise.all([
+        const [statsRes, histRes, reportRes] = await Promise.all([
             fetch('http://localhost:3000/api/harvests/stats', { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch('http://localhost:3000/api/harvests/petani', { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch('http://localhost:3000/api/harvests/petani', { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`http://localhost:3000/api/harvests/report?year=${currentYear}`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
         const statsData = await statsRes.json();
         const histData = await histRes.json();
+        const reportData = await reportRes.json();
 
-        if (statsRes.ok && histRes.ok) {
-            updateUI(statsData.data, histData.data);
+        if (statsRes.ok && histRes.ok && reportRes.ok) {
+            updateUI(statsData.data, histData.data, reportData.data);
         } else {
-            console.error('API Error:', statsData, histData);
+            console.error('API Error:', statsData, histData, reportData);
         }
     } catch (error) {
         console.error('Error load dashboard:', error);
     }
   }
 
-  function updateUI(stats, history) {
+  function updateUI(stats, history, report) {
     // --- STATS ---
-    const verifiedKg = parseFloat(stats.total_verified_kg) || 0;
+    const verifiedTon = parseFloat(stats.total_verified_ton) || 0;
     const verified = history.filter(h => h.status === 'verified').length;
     const pending = history.filter(h => h.status === 'pending').length;
     const rejected = history.filter(h => h.status === 'rejected').length;
 
-    document.getElementById('stat-total-panen').textContent = verifiedKg > 1000
-        ? (verifiedKg / 1000).toFixed(1) + ' T' : verifiedKg.toFixed(0) + ' kg';
+    document.getElementById('stat-total-panen').textContent = verifiedTon.toFixed(2) + ' Ton';
     document.getElementById('stat-verified').textContent = verified;
     document.getElementById('stat-pending').textContent = pending;
     document.getElementById('stat-rejected').textContent = rejected;
@@ -240,27 +242,21 @@
     }
 
     // --- GRAFIK BULANAN ---
-    const currentYear = new Date().getFullYear();
     const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
     const chartMap = {};
-    monthNames.forEach(m => chartMap[m] = { month: m, panen: 0, ver: 0 });
-
-    history.forEach(h => {
-        const d = new Date(h.tanggal_panen);
-        if (d.getFullYear() === currentYear) {
-            const mName = monthNames[d.getMonth()];
-            let kg = parseFloat(h.jumlah) || 0;
-            if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
-            if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
-            chartMap[mName].panen += kg;
-            if (h.status === 'verified') chartMap[mName].ver += kg;
-        }
+    monthNames.forEach((m, idx) => {
+        const rData = report.find(r => r.month === (idx + 1));
+        chartMap[m] = { 
+            month: m, 
+            panen: rData ? parseFloat(rData.total_panen_ton) || 0 : 0, 
+            ver: rData ? parseFloat(rData.total_verified_ton) || 0 : 0 
+        };
     });
 
     const displayData = monthNames.slice(0, new Date().getMonth() + 1).map(m => ({
         month: m,
-        panen: chartMap[m].panen / 1000,
-        ver: chartMap[m].ver / 1000
+        panen: chartMap[m].panen,
+        ver: chartMap[m].ver
     }));
 
     if (displayData.length === 0) {

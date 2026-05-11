@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    Sutra — sidebar-ketua.js
    Injects sidebar HTML for ketua pages
    ============================================ */
@@ -90,6 +90,17 @@ function renderSidebar(activePage) {
           badge.style.background = 'var(--amber)';
           badge.style.color = '#fff';
           if (pending === 0) badge.style.display = 'none';
+        }
+        
+        // Update topbar notif dot
+        const notifDot = document.querySelector('.topbar-right .notif-dot');
+        if (notifDot) {
+            if (pending > 0) {
+                notifDot.style.display = 'flex';
+                notifDot.textContent = pending;
+            } else {
+                notifDot.style.display = 'none';
+            }
         }
       }).catch(() => {});
   }

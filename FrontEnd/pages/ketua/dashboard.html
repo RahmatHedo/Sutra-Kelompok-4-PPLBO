@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -15,7 +15,7 @@
 
     <div class="welcome-banner">
       <div class="welcome-text">
-        <h2 id="welcome-name">Selamat Datang! 👋</h2>
+        <h2 id="welcome-name">Selamat Datang! </h2>
         <p id="welcome-sub">Ada <strong style="color:var(--lime)">0 pengajuan</strong> yang menunggu verifikasi Anda hari ini</p>
       </div>
       <div class="welcome-date">
@@ -148,28 +148,31 @@
         welcomeEl.textContent = `Selamat Datang, ${user.nama.split(' ')[0]}! 👋`;
     }
 
+    const currentYear = new Date().getFullYear();
     try {
-        const [statsRes, histRes, usersRes] = await Promise.all([
+        const [statsRes, histRes, usersRes, reportRes] = await Promise.all([
             fetch('http://localhost:3000/api/harvests/stats', { headers: { 'Authorization': `Bearer ${token}` } }),
             fetch('http://localhost:3000/api/harvests/ketua', { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch('http://localhost:3000/api/users', { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch('http://localhost:3000/api/users', { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`http://localhost:3000/api/harvests/report?year=${currentYear}`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
         const statsData = await statsRes.json();
         const histData = await histRes.json();
         const usersData = await usersRes.json();
+        const reportData = await reportRes.json();
 
-        if (statsRes.ok && histRes.ok && usersRes.ok) {
-            updateUI(statsData.data, histData.data, usersData.data);
+        if (statsRes.ok && histRes.ok && usersRes.ok && reportRes.ok) {
+            updateUI(statsData.data, histData.data, usersData.data, reportData.data);
         } else {
-            console.error('API Error:', statsData, histData, usersData);
+            console.error('API Error:', statsData, histData, usersData, reportData);
         }
     } catch (error) {
         console.error('Error load dashboard:', error);
     }
   }
 
-  function updateUI(stats, harvests, users) {
+  function updateUI(stats, harvests, users, report) {
     const totalPengajuan = stats.total_pengajuan || 0;
     const totalPending = stats.total_pending || 0;
 
@@ -181,25 +184,20 @@
     const approved = harvests.filter(h => h.status === 'verified').length;
     const rejected = harvests.filter(h => h.status === 'rejected').length;
 
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    let totalPanenBulanIniKg = 0;
-
-    harvests.filter(h => h.status === 'verified').forEach(h => {
-        let kg = parseFloat(h.jumlah) || 0;
-        if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
-        if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
-        const hDate = new Date(h.tanggal_panen);
-        if (hDate.getMonth() === currentMonth && hDate.getFullYear() === currentYear) {
-            totalPanenBulanIniKg += kg;
-        }
-    });
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+    let totalPanenBulanIniTon = 0;
+    
+    // Ambil dari report DB langung untuk bulan ini
+    const bulanIniReport = report.find(r => r.month === currentMonth);
+    if (bulanIniReport) {
+        totalPanenBulanIniTon = parseFloat(bulanIniReport.total_verified_ton) || 0;
+    }
 
     const petaniAktifCount = users.filter(u => u.role === 'petani' && u.status === 'acc').length;
     const pctPersetujuan = totalPengajuan > 0 ? ((approved / totalPengajuan) * 100).toFixed(1) + '%' : '0%';
 
     document.getElementById('stat-petani-aktif').textContent = petaniAktifCount;
-    document.getElementById('stat-panen-bulan').textContent = (totalPanenBulanIniKg / 1000).toFixed(2) + ' T';
+    document.getElementById('stat-panen-bulan').textContent = totalPanenBulanIniTon.toFixed(2) + ' Ton';
     document.getElementById('stat-pending').textContent = totalPending;
     document.getElementById('stat-approved').textContent = approved;
     document.getElementById('stat-rejected').textContent = rejected;
@@ -229,17 +227,17 @@
     // Top Petani
     const petaniList = users.filter(u => u.role === 'petani');
     const petaniStats = petaniList.map(p => {
-        let totalKg = 0;
+        let totalTon = 0;
         harvests.filter(h => h.petani_id === p.id && h.status === 'verified').forEach(h => {
-            let kg = parseFloat(h.jumlah) || 0;
-            if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
-            if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
-            totalKg += kg;
+            let val = parseFloat(h.jumlah) || 0;
+            if (h.satuan && (h.satuan.toLowerCase() === 'kuintal' || h.satuan.toLowerCase() === 'kwintal')) val /= 10;
+            else if (h.satuan && h.satuan.toLowerCase() !== 'ton') val /= 1000;
+            totalTon += val;
         });
-        return { ...p, totalKg };
+        return { ...p, totalTon };
     });
 
-    petaniStats.sort((a, b) => b.totalKg - a.totalKg);
+    petaniStats.sort((a, b) => b.totalTon - a.totalTon);
     const topPetani = petaniStats.slice(0, 5);
     const tbody = document.getElementById('top-petani-tbody');
     if (tbody) {
@@ -251,33 +249,28 @@
                   <td><strong>${p.nama}</strong></td>
                   <td>${p.komoditas || '-'}</td>
                   <td>${p.lahan ? p.lahan + ' Ha' : '-'}</td>
-                  <td>${(p.totalKg / 1000).toFixed(2)} ton</td>
+                  <td>${p.totalTon.toFixed(2)} Ton</td>
                   <td>${p.status === 'acc' ? '<span class="badge approved">Aktif</span>' : '<span class="badge pending">Nonaktif</span>'}</td>
                 </tr>
             `).join('');
     }
 
-    // Chart bulanan
+    // Chart bulanan (menggunakan data report dari DB langsung)
     const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
     const chartMap = {};
-    monthNames.forEach(m => chartMap[m] = { month: m, panen: 0, ver: 0 });
-
-    harvests.forEach(h => {
-        const d = new Date(h.tanggal_panen);
-        if (d.getFullYear() === currentYear) {
-            const mName = monthNames[d.getMonth()];
-            let kg = parseFloat(h.jumlah) || 0;
-            if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
-            if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
-            chartMap[mName].panen += kg;
-            if (h.status === 'verified') chartMap[mName].ver += kg;
-        }
+    monthNames.forEach((m, idx) => {
+        const rData = report.find(r => r.month === (idx + 1));
+        chartMap[m] = { 
+            month: m, 
+            panen: rData ? parseFloat(rData.total_panen_ton) || 0 : 0, 
+            ver: rData ? parseFloat(rData.total_verified_ton) || 0 : 0 
+        };
     });
 
     const displayData = monthNames.slice(0, new Date().getMonth() + 1).map(m => ({
         month: m,
-        panen: chartMap[m].panen / 1000,
-        ver: chartMap[m].ver / 1000
+        panen: chartMap[m].panen,
+        ver: chartMap[m].ver
     }));
 
     const maxVal = Math.max(...displayData.map(d => Math.max(d.panen, d.ver)), 1);

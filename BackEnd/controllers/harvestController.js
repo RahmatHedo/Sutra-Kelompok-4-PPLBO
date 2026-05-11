@@ -1,5 +1,6 @@
 const Harvest = require('../models/Harvest');
 const User = require('../models/User');
+const { UserFactory } = require('../models/UserOOP');
 
 // 1. CREATE HARVEST (Input Panen)
 const createHarvest = async (req, res) => {
@@ -28,10 +29,15 @@ const createHarvest = async (req, res) => {
 
 // 2. GET ALL HARVESTS BY PETANI (Riwayat & Tracking Petani)
 const getHarvestsByPetani = async (req, res) => {
-    const petani_id = req.user.id;
+    const filters = {
+        year: req.query.year,
+        month: req.query.month,
+        komoditas: req.query.komoditas
+    };
 
     try {
-        const rows = await Harvest.findByPetaniId(petani_id);
+        const user = await UserFactory.createFromReq(req.user);
+        const rows = await user.getHarvestList(filters);
         
         res.json({
             message: "Berhasil mengambil riwayat panen",
@@ -45,17 +51,16 @@ const getHarvestsByPetani = async (req, res) => {
 
 // 3. GET HARVESTS FOR KETUA (Berdasarkan kelompok_tani yang sama)
 const getHarvestsForKetua = async (req, res) => {
-    const ketua_id = req.user.id;
+    const filters = {
+        year: req.query.year,
+        month: req.query.month,
+        komoditas: req.query.komoditas,
+        petani: req.query.petani
+    };
 
     try {
-        // Ambil daerah dari ketua
-        const ketuaInfo = await User.getKetuaDaerah(ketua_id);
-        if (ketuaInfo.length === 0) {
-            return res.status(404).json({ message: "Ketua tidak ditemukan" });
-        }
-        
-        const daerah = ketuaInfo[0].daerah;
-        const rows = await Harvest.findByDaerah(daerah);
+        const user = await UserFactory.createFromReq(req.user);
+        const rows = await user.getHarvestList(filters);
         
         res.json({
             message: "Berhasil mengambil data panen kelompok",
@@ -70,47 +75,76 @@ const getHarvestsForKetua = async (req, res) => {
 // 4. UPDATE HARVEST STATUS (Verifikasi Ketua)
 const updateHarvestStatus = async (req, res) => {
     const { id } = req.params;
-    const { status } = req.body; // 'verified' atau 'rejected'
+    const { status, catatan_ketua } = req.body; // 'verified' atau 'rejected'
 
     if (!['verified', 'rejected'].includes(status)) {
         return res.status(400).json({ message: "Status tidak valid" });
     }
 
+    // Jika ditolak, catatan wajib diisi
+    if (status === 'rejected' && (!catatan_ketua || !catatan_ketua.trim())) {
+        return res.status(400).json({ message: "Harap isi catatan alasan penolakan" });
+    }
+
     try {
-        const result = await Harvest.updateStatus(id, status);
+        const result = await Harvest.updateStatus(id, status, catatan_ketua || null);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: "Data panen tidak ditemukan" });
         }
 
-        res.json({ message: `Status panen berhasil diubah menjadi ${status}` });
+        const msg = status === 'verified'
+            ? 'Panen berhasil disetujui'
+            : 'Panen ditolak dengan catatan';
+        res.json({ message: msg });
     } catch (error) {
         console.error("Update Harvest Status Error:", error);
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 };
 
+// 4b. GET SINGLE HARVEST BY ID (Untuk QR / Sertifikat)
+const getHarvestById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const rows = await Harvest.findById(id);
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({ message: "Data panen tidak ditemukan" });
+        }
+        res.json({ data: rows[0] });
+    } catch (error) {
+        console.error("Get Harvest By ID Error:", error);
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+};
+
 // 5. GET HARVEST STATS (Untuk Dashboard)
 const getHarvestStats = async (req, res) => {
-    const user_id = req.user.id;
-    const role = req.user.role;
-
     try {
-        let stats = {};
-        if (role === 'petani') {
-            const rows = await Harvest.getStatsPetani(user_id);
-            stats = rows[0];
-        } else if (role === 'ketua') {
-            const ketuaInfo = await User.getKetuaDaerah(user_id);
-            const daerah = ketuaInfo[0].daerah;
-            
-            const rows = await Harvest.getStatsKetua(daerah);
-            stats = rows[0];
-        }
+        const user = await UserFactory.createFromReq(req.user);
+        const stats = await user.getDashboardStats();
 
         res.json({ data: stats });
     } catch (error) {
         console.error("Get Harvest Stats Error:", error);
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+};
+
+// 6. GET HARVEST REPORT (Untuk Grafik dan Laporan)
+const getHarvestReport = async (req, res) => {
+    const year = req.query.year || new Date().getFullYear();
+    const month = req.query.month;
+    const komoditas = req.query.komoditas;
+    const petani = req.query.petani;
+
+    try {
+        const user = await UserFactory.createFromReq(req.user);
+        const reportData = await user.getHarvestReport(year, month, komoditas, petani);
+
+        res.json({ data: reportData });
+    } catch (error) {
+        console.error("Get Harvest Report Error:", error);
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 };
@@ -120,5 +154,8 @@ module.exports = {
     getHarvestsByPetani,
     getHarvestsForKetua,
     updateHarvestStatus,
-    getHarvestStats
+    getHarvestById,
+    getHarvestStats,
+    getHarvestReport
 };
+

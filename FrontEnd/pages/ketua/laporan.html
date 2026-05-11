@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -55,7 +55,9 @@
       <label><i class="ti ti-filter" style="color:var(--leaf)"></i> Filter:</label>
       <select id="filter-tahun" class="form-input" style="width:auto;padding:7px 12px;font-size:.82rem">
         <option value="all">Semua Tahun</option>
-        <option value="2025" selected>2025</option><option value="2024">2024</option>
+        <option value="2026" selected>2026</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
       </select>
       <select id="filter-bulan" class="form-input" style="width:auto;padding:7px 12px;font-size:.82rem">
         <option value="all">Semua Bulan</option>
@@ -134,7 +136,7 @@
         <table>
           <thead>
             <tr>
-              <th>Nama Petani</th><th>Total Panen (kg)</th><th>Total Panen (ton)</th><th>Total Pengajuan</th><th>Disetujui</th>
+              <th>Nama Petani</th><th>Total Panen (Ton)</th><th>Total Pengajuan</th><th>Disetujui</th>
             </tr>
           </thead>
           <tbody id="laporan-tbody">
@@ -168,6 +170,7 @@
         if (response.ok) {
             allHarvests = data.data;
             populateFilters();
+            // Panggil applyFilters untuk memuat data pertama kali
             applyFilters();
         }
     } catch(err) {
@@ -192,42 +195,73 @@
                           Array.from(petaniSet).map(p => `<option value="${p}">${p}</option>`).join('');
   }
 
-  function applyFilters() {
+  async function applyFilters() {
       const ftahun = document.getElementById('filter-tahun').value;
       const fbulan = document.getElementById('filter-bulan').value;
       const fkomoditas = document.getElementById('filter-komoditas').value;
       const fpetani = document.getElementById('filter-petani').value;
       
-      let filtered = allHarvests.filter(h => {
-          let match = true;
-          const d = new Date(h.tanggal_panen);
-          if (ftahun !== 'all' && d.getFullYear().toString() !== ftahun) match = false;
-          if (fbulan !== 'all' && (d.getMonth() + 1).toString() !== fbulan) match = false;
-          if (fkomoditas !== 'all' && h.komoditas !== fkomoditas) match = false;
-          if (fpetani !== 'all' && h.nama_petani !== fpetani) match = false;
-          return match;
-      });
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const qKetua = new URLSearchParams();
+      const qReport = new URLSearchParams();
+
+      if (ftahun !== 'all') {
+          qKetua.append('year', ftahun);
+          qReport.append('year', ftahun);
+      } else {
+          qReport.append('year', new Date().getFullYear()); // Default chart to current year if 'Semua Tahun'
+      }
       
-      renderDashboardStats(filtered);
-      renderLaporanTable(filtered);
-      renderChartAndDist(filtered);
-      
-      // showToast('Data diperbarui','success');
+      if (fbulan !== 'all') {
+          qKetua.append('month', fbulan);
+          qReport.append('month', fbulan);
+      }
+      if (fkomoditas !== 'all') {
+          qKetua.append('komoditas', fkomoditas);
+          qReport.append('komoditas', fkomoditas);
+      }
+      if (fpetani !== 'all') {
+          qKetua.append('petani', fpetani);
+          qReport.append('petani', fpetani);
+      }
+
+      try {
+          const [ketuaRes, reportRes] = await Promise.all([
+              fetch(`http://localhost:3000/api/harvests/ketua?${qKetua.toString()}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+              fetch(`http://localhost:3000/api/harvests/report?${qReport.toString()}`, { headers: { 'Authorization': `Bearer ${token}` } })
+          ]);
+
+          const ketuaData = await ketuaRes.json();
+          const reportData = await reportRes.json();
+
+          if (ketuaRes.ok && reportRes.ok) {
+              const filtered = ketuaData.data;
+              const report = reportData.data;
+
+              renderDashboardStats(filtered, ftahun);
+              renderLaporanTable(filtered);
+              renderChartAndDist(filtered, report);
+          }
+      } catch (err) {
+          console.error("Error applying filters:", err);
+      }
   }
 
-  function renderDashboardStats(harvests) {
-      let totalVerifiedKg = 0;
+  function renderDashboardStats(harvests, tahun) {
+      let totalVerifiedTon = 0;
       let totalPengajuan = harvests.length;
       let disetujuiCount = 0;
       const petaniSet = new Set();
       
       harvests.forEach(h => {
-          let kg = parseFloat(h.jumlah) || 0;
-          if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
-          if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
+          let ton = parseFloat(h.jumlah) || 0;
+          if (h.satuan && (h.satuan.toLowerCase() === 'kuintal' || h.satuan.toLowerCase() === 'kwintal')) ton /= 10;
+          else if (h.satuan && h.satuan.toLowerCase() !== 'ton') ton /= 1000;
           
           if (h.status === 'verified') {
-              totalVerifiedKg += kg;
+              totalVerifiedTon += ton;
               disetujuiCount++;
               petaniSet.add(h.petani_id);
           }
@@ -235,15 +269,20 @@
       
       const persetujuan = totalPengajuan > 0 ? (disetujuiCount / totalPengajuan) * 100 : 0;
       const aktifCount = petaniSet.size;
-      const rataRata = aktifCount > 0 ? (totalVerifiedKg / aktifCount) : 0;
+      const rataRata = aktifCount > 0 ? (totalVerifiedTon / aktifCount) : 0;
       
       const stats = document.querySelectorAll('.stat-value');
+      const labels = document.querySelectorAll('.stat-label');
+      if (labels.length >= 1) {
+          labels[0].textContent = 'Total Produksi ' + (tahun !== 'all' ? tahun : 'Semua Tahun');
+      }
+
       const trend = document.querySelectorAll('.stat-trend');
       if(stats.length >= 4) {
-          stats[0].textContent = (totalVerifiedKg / 1000).toFixed(2) + ' T';
+          stats[0].textContent = totalVerifiedTon.toFixed(2) + ' Ton';
           stats[1].textContent = persetujuan.toFixed(1) + '%';
           stats[2].textContent = aktifCount;
-          stats[3].textContent = (rataRata / 1000).toFixed(2) + ' T';
+          stats[3].textContent = rataRata.toFixed(2) + ' Ton';
           
           if(trend.length >= 2) {
               trend[1].textContent = persetujuan.toFixed(1) + '%';
@@ -251,30 +290,18 @@
       }
   }
 
-  function renderChartAndDist(harvests) {
-      // CHART
+  function renderChartAndDist(harvests, report) {
+      // CHART (dari API report DB)
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-      const chartDataMap = {};
-      monthNames.forEach(m => chartDataMap[m] = { month: m, panen: 0, ver: 0 });
       
-      harvests.forEach(h => {
-          const d = new Date(h.tanggal_panen);
-          const mName = monthNames[d.getMonth()];
-          let kg = parseFloat(h.jumlah) || 0;
-          if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
-          if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
-          
-          chartDataMap[mName].panen += kg;
-          if (h.status === 'verified') {
-              chartDataMap[mName].ver += kg;
-          }
+      const dynChartData = monthNames.map((m, idx) => {
+          const rData = report.find(r => r.month === (idx + 1));
+          return {
+              month: m,
+              panen: rData ? parseFloat(rData.total_panen_ton) || 0 : 0,
+              ver: rData ? parseFloat(rData.total_verified_ton) || 0 : 0
+          };
       });
-      
-      const dynChartData = monthNames.map(m => ({
-          month: m,
-          panen: chartDataMap[m].panen / 1000,
-          ver: chartDataMap[m].ver / 1000
-      }));
       
       document.getElementById('chart-wrap').innerHTML = '';
       const maxVal = Math.max(...dynChartData.map(d => Math.max(d.panen, d.ver))) || 10;
@@ -284,32 +311,32 @@
       const distMap = {};
       let totalVerified = 0;
       harvests.filter(h => h.status === 'verified').forEach(h => {
-          let kg = parseFloat(h.jumlah) || 0;
-          if (h.satuan && h.satuan.toLowerCase() === 'ton') kg *= 1000;
-          if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg *= 100;
+          let ton = parseFloat(h.jumlah) || 0;
+          if (h.satuan && (h.satuan.toLowerCase() === 'kuintal' || h.satuan.toLowerCase() === 'kwintal')) ton /= 10;
+          else if (h.satuan && h.satuan.toLowerCase() !== 'ton') ton /= 1000;
           
-          distMap[h.komoditas] = (distMap[h.komoditas] || 0) + kg;
-          totalVerified += kg;
+          distMap[h.komoditas] = (distMap[h.komoditas] || 0) + ton;
+          totalVerified += ton;
       });
       
       const kWrap = document.getElementById('komoditas-wrap');
       const icons = { 'Padi': 'ti-wheat', 'Jagung': 'ti-plant', 'Kedelai': 'ti-plant', 'Singkong': 'ti-plant-2', 'Cabai': 'ti-flame', 'Bawang Merah': 'ti-plant' };
       const colors = { 'Padi': 'var(--leaf),var(--mint)', 'Jagung': 'var(--amber),#f0c060', 'Kedelai': 'var(--sky),#7ec8e0', 'Singkong': 'var(--rose),#f09090', 'Cabai': 'var(--red),#ff6b6b' };
       
-      let distArr = Object.keys(distMap).map(k => ({ k, kg: distMap[k] })).sort((a,b) => b.kg - a.kg);
+      let distArr = Object.keys(distMap).map(k => ({ k, ton: distMap[k] })).sort((a,b) => b.ton - a.ton);
       if (distArr.length === 0) {
           kWrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light)">Tidak ada data terverifikasi untuk filter ini</div>';
           return;
       }
       
       kWrap.innerHTML = distArr.map(d => {
-          const pct = ((d.kg / totalVerified) * 100).toFixed(1);
+          const pct = ((d.ton / totalVerified) * 100).toFixed(1);
           const icon = icons[d.k] || 'ti-plant-2';
           const color = colors[d.k] || '#9b8cff,#c4b8ff';
           return `<div class="komoditas-bar">
             <div class="komoditas-label"><i class="ti ${icon}"></i> ${d.k}</div>
             <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:linear-gradient(90deg,${color})"></div></div>
-            <div class="bar-val">${(d.kg/1000).toFixed(2)} ton</div>
+            <div class="bar-val">${d.ton.toFixed(2)} Ton</div>
           </div>`;
       }).join('');
   }
@@ -321,18 +348,18 @@
           if (!petaniStats[h.petani_id]) {
               petaniStats[h.petani_id] = {
                   nama: h.nama_petani,
-                  total_kg: 0,
+                  total_ton: 0,
                   total_pengajuan: 0,
                   disetujui: 0
               };
           }
           
-          let kg = parseFloat(h.jumlah) || 0;
-          if (h.satuan && h.satuan.toLowerCase() === 'ton') kg = kg * 1000;
-          if (h.satuan && h.satuan.toLowerCase() === 'kuintal') kg = kg * 100;
+          let ton = parseFloat(h.jumlah) || 0;
+          if (h.satuan && (h.satuan.toLowerCase() === 'kuintal' || h.satuan.toLowerCase() === 'kwintal')) ton /= 10;
+          else if (h.satuan && h.satuan.toLowerCase() !== 'ton') ton /= 1000;
           
           if (h.status === 'verified') {
-              petaniStats[h.petani_id].total_kg += kg;
+              petaniStats[h.petani_id].total_ton += ton;
               petaniStats[h.petani_id].disetujui += 1;
           }
           petaniStats[h.petani_id].total_pengajuan += 1;
@@ -342,25 +369,22 @@
       const statsArray = Object.values(petaniStats);
       
       if (statsArray.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Belum ada data panen.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center">Belum ada data panen.</td></tr>';
           return;
       }
       
-      let grandKg = 0;
+      let grandTon = 0;
       let grandPengajuan = 0;
       let grandDisetujui = 0;
 
       let html = statsArray.map(p => {
-          grandKg += p.total_kg;
+          grandTon += p.total_ton;
           grandPengajuan += p.total_pengajuan;
           grandDisetujui += p.disetujui;
           
-          const ton = (p.total_kg / 1000).toFixed(2);
-          
           return `<tr>
               <td><strong>${p.nama}</strong></td>
-              <td>${p.total_kg.toFixed(2)} kg</td>
-              <td>${ton} ton</td>
+              <td>${p.total_ton.toFixed(2)} Ton</td>
               <td>${p.total_pengajuan}</td>
               <td><span class="badge approved">${p.disetujui}</span></td>
           </tr>`;
@@ -368,8 +392,7 @@
       
       html += `<tr>
           <td style="font-weight:700;color:var(--text-dark)">TOTAL</td>
-          <td style="font-weight:700">${grandKg.toFixed(2)} kg</td>
-          <td style="font-weight:700;color:var(--leaf)">${(grandKg/1000).toFixed(2)} ton</td>
+          <td style="font-weight:700;color:var(--leaf)">${grandTon.toFixed(2)} Ton</td>
           <td style="font-weight:700">${grandPengajuan}</td>
           <td><span class="badge approved" style="font-size:.8rem">${grandDisetujui}</span></td>
       </tr>`;
